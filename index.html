@@ -696,31 +696,81 @@
                 const qrItem = document.createElement('div');
                 qrItem.className = 'qr-code-item';
                 
-                // Create QR code using Google Charts API (more reliable)
-                const qrImg = document.createElement('img');
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${group.id}&bgcolor=667eea&color=ffffff`;
-                qrImg.alt = `QR Code for Group ${group.id}`;
-                qrImg.className = 'qr-code-canvas';
-                qrImg.style.width = '80px';
-                qrImg.style.height = '80px';
-                qrImg.style.border = '1px solid #ddd';
-                qrImg.style.borderRadius = '4px';
+                // Create container for QR code
+                const qrContainer = document.createElement('div');
+                qrContainer.style.width = '80px';
+                qrContainer.style.height = '80px';
+                qrContainer.style.margin = '0 auto 10px';
+                qrContainer.style.display = 'flex';
+                qrContainer.style.alignItems = 'center';
+                qrContainer.style.justifyContent = 'center';
+                qrContainer.style.border = '1px solid #ddd';
+                qrContainer.style.borderRadius = '4px';
+                qrContainer.style.backgroundColor = '#667eea';
                 
-                // Fallback if image fails to load
-                qrImg.onerror = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.className = 'qr-code-canvas';
-                    canvas.width = 80;
-                    canvas.height = 80;
-                    generatePlaceholderQR(canvas, group.id);
-                    qrImg.parentNode.replaceChild(canvas, qrImg);
-                };
+                // Try multiple QR code services
+                const qrServices = [
+                    `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${group.id}&bgcolor=667eea&color=ffffff`,
+                    `https://chart.googleapis.com/chart?chs=80x80&cht=qr&chl=${group.id}&choe=UTF-8`,
+                    `https://quickchart.io/qr?text=${group.id}&size=80&dark=667eea&light=ffffff`
+                ];
+                
+                let serviceIndex = 0;
+                
+                function tryLoadQR() {
+                    if (serviceIndex >= qrServices.length) {
+                        // All services failed, use placeholder
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 80;
+                        canvas.height = 80;
+                        generatePlaceholderQR(canvas, group.id);
+                        qrContainer.appendChild(canvas);
+                        return;
+                    }
+                    
+                    const qrImg = document.createElement('img');
+                    qrImg.src = qrServices[serviceIndex];
+                    qrImg.alt = `QR Code for Group ${group.id}`;
+                    qrImg.style.width = '80px';
+                    qrImg.style.height = '80px';
+                    qrImg.style.display = 'block';
+                    
+                    qrImg.onload = function() {
+                        // Success! Add the image
+                        qrContainer.innerHTML = '';
+                        qrContainer.appendChild(qrImg);
+                    };
+                    
+                    qrImg.onerror = function() {
+                        // Try next service
+                        serviceIndex++;
+                        setTimeout(tryLoadQR, 100);
+                    };
+                    
+                    // Set a timeout to try next service if loading takes too long
+                    setTimeout(() => {
+                        if (!qrImg.complete || qrImg.naturalWidth === 0) {
+                            serviceIndex++;
+                            tryLoadQR();
+                        }
+                    }, 2000);
+                }
+                
+                // Start with placeholder and try to load QR
+                const canvas = document.createElement('canvas');
+                canvas.width = 80;
+                canvas.height = 80;
+                generatePlaceholderQR(canvas, group.id);
+                qrContainer.appendChild(canvas);
+                
+                // Try to load real QR code
+                setTimeout(tryLoadQR, 500);
                 
                 const label = document.createElement('div');
                 label.className = 'qr-code-label';
                 label.textContent = `Group ${group.id}`;
                 
-                qrItem.appendChild(qrImg);
+                qrItem.appendChild(qrContainer);
                 qrItem.appendChild(label);
                 qrItem.onclick = () => simulateQRScan(group.id);
                 container.appendChild(qrItem);
@@ -735,6 +785,10 @@
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(groupId.toString(), 40, 48);
+            
+            // Add "QR" text to indicate it's a QR placeholder
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText('QR', 40, 25);
         }
 
         function startQRScanner() {
