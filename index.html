@@ -692,6 +692,9 @@
             const container = document.getElementById('qr-codes-grid');
             container.innerHTML = '';
             
+            // Get the current website URL
+            const baseUrl = window.location.origin + window.location.pathname;
+            
             researchGroups.forEach(group => {
                 const qrItem = document.createElement('div');
                 qrItem.className = 'qr-code-item';
@@ -708,11 +711,14 @@
                 qrContainer.style.borderRadius = '4px';
                 qrContainer.style.backgroundColor = '#667eea';
                 
-                // Try multiple QR code services
+                // Create QR code URL that points to the website with group parameter
+                const qrData = `${baseUrl}?group=${group.id}`;
+                
+                // Try multiple QR code services with the full URL
                 const qrServices = [
-                    `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${group.id}&bgcolor=667eea&color=ffffff`,
-                    `https://chart.googleapis.com/chart?chs=80x80&cht=qr&chl=${group.id}&choe=UTF-8`,
-                    `https://quickchart.io/qr?text=${group.id}&size=80&dark=667eea&light=ffffff`
+                    `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(qrData)}&bgcolor=667eea&color=ffffff`,
+                    `https://chart.googleapis.com/chart?chs=80x80&cht=qr&chl=${encodeURIComponent(qrData)}&choe=UTF-8`,
+                    `https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=80&dark=667eea&light=ffffff`
                 ];
                 
                 let serviceIndex = 0;
@@ -969,7 +975,33 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            showSection('qr-scanner');
+            // Check if there's a group parameter in the URL (from QR code scan)
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupId = urlParams.get('group');
+            
+            if (groupId && groupId >= 1 && groupId <= 13) {
+                // QR code was scanned - show the specific group
+                const group = researchGroups.find(g => g.id == groupId);
+                if (group) {
+                    showSection('qr-scanner');
+                    // Add a small delay to ensure the section is visible
+                    setTimeout(() => {
+                        displayFlashcard(group);
+                        // Show a success message
+                        const statusDiv = document.getElementById('scan-status');
+                        if (statusDiv) {
+                            statusDiv.style.display = 'block';
+                            statusDiv.textContent = `QR Code scanned successfully! Displaying Group ${groupId}...`;
+                            statusDiv.className = 'status-message status-success';
+                        }
+                    }, 500);
+                } else {
+                    showSection('qr-scanner');
+                }
+            } else {
+                // Normal page load
+                showSection('qr-scanner');
+            }
         });
 
         // Handle page unload
