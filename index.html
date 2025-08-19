@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIBB Research Groups Explorer</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-tertiary {
+            background: linear-gradient(45deg, #ffeaa7, #fdcb6e);
+            color: #2d3436;
+            box-shadow: 0 4px 15px rgba(255, 234, 167, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .group-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+        }
+
+        .group-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .group-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .group-card h3 {
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            line-height: 1.3;
+        }
+
+        .group-card p {
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .group-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .keyword-tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .qr-scanner {
+            text-align: center;
+        }
+
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            background: #000;
+        }
+
+        #qr-video {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid #ff6b6b;
+            border-radius: 10px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { border-color: #ff6b6b; }
+            50% { border-color: #ff9f43; }
+            100% { border-color: #ff6b6b; }
+        }
+
+        .flashcard-display {
+            max-width: 700px;
+            margin: 20px auto;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            transform: perspective(1000px) rotateX(5deg);
+            transition: all 0.3s ease;
+        }
+
+        .flashcard-display:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .flashcard-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .flashcard-focus {
+            font-size: 1.2rem;
+            color: #667eea;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2d3436;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .flashcard-keywords {
+            text-align: center;
+        }
+
+        .compatibility-matrix {
+            overflow-x: auto;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.8rem;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 0.75rem;
+        }
+
+        .matrix-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .matrix-table th.group-name {
+            max-width: 150px;
+            text-align: left;
+            font-size: 0.7rem;
+            padding: 8px;
+        }
+
+        .score-high { background-color: #d4edda; color: #155724; }
+        .score-medium { background-color: #fff3cd; color: #856404; }
+        .score-low { background-color: #f8d7da; color: #721c24; }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .qr-generator {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .qr-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .qr-code-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .qr-code-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .qr-code-canvas {
+            margin-bottom: 10px;
+        }
+
+        .qr-code-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .nav-buttons { flex-direction: column; align-items: center; }
+            .btn { width: 200px; }
+            .section { padding: 20px; }
+            .groups-grid { grid-template-columns: 1fr; }
+            .flashcard-display { margin: 20px 10px; padding: 20px; }
+            .matrix-table { font-size: 0.7rem; }
+            .matrix-table th, .matrix-table td { padding: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CIBB Research Groups Explorer</h1>
+            <p>Discover CIBB research groups through interactive QR flashcards</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-primary" onclick="showSection('qr-scanner')">QR Scanner</button>
+            <button class="btn btn-secondary" onclick="showSection('groups-browser')">Browse Groups</button>
+            <button class="btn btn-tertiary" onclick="showSection('compatibility')">Compatibility Matrix</button>
+        </div>
+
+        <!-- QR Scanner Section -->
+        <div id="qr-scanner" class="section">
+            <h2>QR Code Scanner</h2>
+            <p>Scan QR codes to display research group information</p>
+            
+            <div class="qr-scanner">
+                <div class="camera-container">
+                    <video id="qr-video" autoplay playsinline></video>
+                    <div class="scan-overlay"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="start-scan">Start QR Scanner</button>
+                    <button class="btn btn-secondary" id="stop-scan" style="display: none;">Stop Scanner</button>
+                </div>
+            </div>
+
+            <div id="scan-status" class="status-message status-info" style="display: none;">
+                Initializing camera...
+            </div>
+
+            <div id="flashcard-container" style="display: none;">
+                <!-- Flashcard will be displayed here -->
+            </div>
+
+            <div class="qr-generator">
+                <h3>QR Codes for Testing</h3>
+                <p>Use these QR codes to test the scanner functionality</p>
+                <div class="qr-codes-grid" id="qr-codes-grid">
+                    <!-- QR codes will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Groups Browser Section -->
+        <div id="groups-browser" class="section hidden">
+            <h2>CIBB Research Groups Directory</h2>
+            <p>Explore all 13 research groups and their specializations</p>
+            
+            <div class="groups-grid" id="groups-container">
+                <!-- Groups will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Compatibility Matrix Section -->
+        <div id="compatibility" class="section hidden">
+            <h2>Research Group Compatibility Matrix</h2>
+            <p>Discover collaboration potential between different research groups based on shared research themes, methodologies, and complementary expertise</p>
+            
+            <div class="compatibility-matrix">
+                <table class="matrix-table" id="compatibility-table">
+                    <!-- Matrix will be populated by JavaScript -->
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CIBB Research Groups Data
+        const researchGroups = [
+            {
+                id: 1,
+                name: "ACT – Advanced Cell Technology",
+                description: "High-throughput screening approaches and stem cell-based assays to identify small molecules and miRNAs for tissue regeneration. Uses nature-inspired delivery systems for in vivo therapeutic delivery.",
+                keywords: ["High-throughput screening", "miRNAs", "Small molecules", "Extracellular Vesicles", "Regenerative Medicine", "Stem Cells"],
+                focus: "Tissue Regeneration & Drug Delivery",
+                domain: "biotechnology"
+            },
+            {
+                id: 2,
+                name: "Advanced Therapies",
+                description: "Developing knowledge to understand and treat age-related diseases, particularly cardiovascular diseases, using iPSC-derived tissues and nanomedicine approaches.",
+                keywords: ["Ageing", "Cardiovascular Diseases", "Stem Cells", "iPSCs Differentiation", "Nanomaterials", "Drug screening"],
+                focus: "Age-related Disease Therapy",
+                domain: "therapy"
+            },
+            {
+                id: 3,
+                name: "Data-Driven Molecular Design",
+                description: "Integration of data science and AI into chemistry and biomedicine. Develops predictive models, drug discovery processes, and understanding of disease mechanisms.",
+                keywords: ["Bioinformatics", "Computational Biology", "Data Science", "Machine Learning", "Structural Modeling", "AI"],
+                focus: "Computational Drug Discovery",
+                domain: "computational"
+            },
+            {
+                id: 4,
+                name: "Functional Genomics and RNA-based Therapeutics",
+                description: "Identification of novel cellular factors for cardiac regeneration and repair, and development of high-throughput screening technologies using genome-wide libraries.",
+                keywords: ["Functional Genomics", "Cardiovascular Diseases", "High-throughput screening", "MicroRNAs", "CRISPR", "siRNA"],
+                focus: "Cardiac Regeneration & Genomics",
+                domain: "genomics"
+            },
+            {
+                id: 5,
+                name: "Functional Proteomics in Health and Disease",
+                description: "Advanced mass spectrometry approaches for biomarker research, particularly in neurodegenerative disorders, psychiatric diseases, and hypoxic-ischemic encephalopathy.",
+                keywords: ["Biomarkers", "Translational Research", "Proteomics", "Mass Spectrometry", "Big Data", "Metabolomics"],
+                focus: "Proteomics & Biomarker Discovery",
+                domain: "proteomics"
+            },
+            {
+                id: 6,
+                name: "Immune Cell Reprogramming",
+                description: "Cellular reprogramming approaches focused on immune cell function, regenerative immunology, and therapeutic immune modulation strategies.",
+                keywords: ["Cell Reprogramming", "Immunology", "Regenerative Medicine", "Cell Therapy", "Immune Modulation"],
+                focus: "Immune Cell Engineering",
+                domain: "immunology"
+            },
+            {
+                id: 7,
+                name: "Medical Microbiology",
+                description: "Studies microbial agents of human disease, mechanisms of antimicrobial resistance, and seeks innovative therapies. Focus on fungal pathogens and purinergic system in infection.",
+                keywords: ["Medical Microbiology", "Infection", "Pathogenesis", "Antimicrobial Resistance", "Fungal Pathogens", "Purinergic System"],
+                focus: "Infectious Disease & Antimicrobials",
+                domain: "microbiology"
+            },
+            {
+                id: 8,
+                name: "Medicinal Chemistry and Drug Discovery",
+                description: "Design and synthesis of novel therapeutic compounds, structure-activity relationship studies, and development of innovative drug delivery systems.",
+                keywords: ["Medicinal Chemistry", "Drug Discovery", "Synthesis", "SAR Studies", "Lead Optimization", "Chemical Biology"],
+                focus: "Chemical Drug Development",
+                domain: "chemistry"
+            },
+            {
+                id: 9,
+                name: "Microbial and Molecular Biotechnology",
+                description: "Exploitation of microbial systems for biotechnological applications, enzyme engineering, and development of bio-based production processes.",
+                keywords: ["Microbial Biotechnology", "Enzyme Engineering", "Bioprocesses", "Metabolic Engineering", "Fermentation", "Biocatalysis"],
+                focus: "Biotechnological Applications",
+                domain: "biotechnology"
+            },
+            {
+                id: 10,
+                name: "Molecular Mycobacteriology and Microbiome",
+                description: "Study of mycobacterial infections, host-pathogen interactions, and microbiome influence on health and disease progression.",
+                keywords: ["Mycobacteriology", "Microbiome", "Host-Pathogen Interactions", "Tuberculosis", "Bacterial Pathogenesis"],
+                focus: "Mycobacterial Research",
+                domain: "microbiology"
+            },
+            {
+                id: 11,
+                name: "RNA Infection",
+                description: "Investigation of RNA viruses, RNA-based therapeutic interventions, and molecular mechanisms of viral infection and replication.",
+                keywords: ["RNA Viruses", "Viral Infection", "Antiviral Therapy", "RNA Biology", "Viral Replication"],
+                focus: "Viral RNA Research",
+                domain: "virology"
+            },
+            {
+                id: 12,
+                name: "Tumor Microenvironment and Targeted Therapies",
+                description: "Understanding cancer biology through tumor microenvironment analysis and development of targeted therapeutic approaches for cancer treatment.",
+                keywords: ["Cancer Biology", "Tumor Microenvironment", "Targeted Therapy", "Oncology", "Drug Resistance", "Precision Medicine"],
+                focus: "Cancer Research & Therapy",
+                domain: "oncology"
+            },
+            {
+                id: 13,
+                name: "Vectors, Gene and Cell Therapy",
+                description: "Development of gene delivery vectors, cell therapy approaches, and innovative strategies for therapeutic gene expression and cellular reprogramming.",
+                keywords: ["Gene Therapy", "Cell Therapy", "Viral Vectors", "Gene Delivery", "Therapeutic Genes", "Vector Development"],
+                focus: "Gene & Cell Therapy",
+                domain: "therapy"
+            }
+        ];
+
+        // QR Scanner functionality
+        let qrScanner = null;
+        let scanning = false;
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = ['qr-scanner', 'groups-browser', 'compatibility'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Initialize section-specific functionality
+            if (sectionId === 'groups-browser') {
+                populateGroupsGrid();
+            } else if (sectionId === 'compatibility') {
+                generateCompatibilityMatrix();
+            } else if (sectionId === 'qr-scanner') {
+                generateQRCodes();
+            }
+        }
+
+        function populateGroupsGrid() {
+            const container = document.getElementById('groups-container');
+            container.innerHTML = '';
+            
+            researchGroups.forEach(group => {
+                const card = document.createElement('div');
+                card.className = 'group-card';
+                
+                const keywordTags = group.keywords.map(keyword => 
+                    `<span class="keyword-tag">${keyword}</span>`
+                ).join('');
+                
+                card.innerHTML = `
+                    <h3>${group.name}</h3>
+                    <p><strong>Focus:</strong> ${group.focus}</p>
+                    <p>${group.description}</p>
+                    <div class="group-keywords">${keywordTags}</div>
+                `;
+                card.onclick = () => displayFlashcard(group);
+                container.appendChild(card);
+            });
+        }
+
+        function generateCompatibilityMatrix() {
+            const table = document.getElementById('compatibility-table');
+            table.innerHTML = '';
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th class="group-name">Research Group</th>';
+            researchGroups.forEach(group => {
+                const th = document.createElement('th');
+                th.textContent = group.id;
+                th.title = group.name;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+            
+            // Create matrix rows
+            researchGroups.forEach(groupA => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('th');
+                nameCell.className = 'group-name';
+                nameCell.textContent = `${groupA.id}. ${groupA.name}`;
+                nameCell.title = groupA.description;
+                row.appendChild(nameCell);
+                
+                researchGroups.forEach(groupB => {
+                    const cell = document.createElement('td');
+                    const compatibility = calculateCompatibility(groupA, groupB);
+                    cell.textContent = compatibility + '%';
+                    
+                    if (compatibility >= 70) cell.className = 'score-high';
+                    else if (compatibility >= 40) cell.className = 'score-medium';
+                    else cell.className = 'score-low';
+                    
+                    row.appendChild(cell);
+                });
+                
+                table.appendChild(row);
+            });
+        }
+
+        function calculateCompatibility(groupA, groupB) {
+            if (groupA.id === groupB.id) return 100;
+            
+            // Domain compatibility scoring
+            let domainScore = 0;
+            if (groupA.domain === groupB.domain) {
+                domainScore = 30;
+            } else {
+                // Cross-domain synergies
+                const synergies = {
+                    'computational-biotechnology': 25,
+                    'computational-chemistry': 25,
+                    'computational-proteomics': 25,
+                    'computational-genomics': 25,
+                    'biotechnology-therapy': 20,
+                    'microbiology-chemistry': 20,
+                    'genomics-proteomics': 25,
+                    'therapy-immunology': 25,
+                    'oncology-therapy': 25,
+                    'chemistry-biotechnology': 20
+                };
+                
+                const pairKey = [groupA.domain, groupB.domain].sort().join('-');
+                domainScore = synergies[pairKey] || 10;
+            }
+            
+            // Keyword overlap scoring
+            const keywordOverlap = groupA.keywords.filter(keyword => 
+                groupB.keywords.some(bKeyword => 
+                    keyword.toLowerCase().includes(bKeyword.toLowerCase()) ||
+                    bKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
+                    Math.abs(keyword.length - bKeyword.length) <= 3 && 
+                    keyword.toLowerCase().substring(0,4) === bKeyword.toLowerCase().substring(0,4)
+                )
+            ).length;
+            
+            const maxKeywords = Math.max(groupA.keywords.length, groupB.keywords.length);
+            const keywordScore = (keywordOverlap / maxKeywords) * 40;
+            
+            // Research focus synergy scoring
+            const focusSynergies = {
+                'regenerative': ['tissue', 'cell therapy', 'stem', 'cardiac'],
+                'computational': ['data', 'modeling', 'bioinformatics', 'discovery'],
+                'therapeutic': ['drug', 'therapy', 'treatment', 'medicine'],
+                'disease': ['cancer', 'infectious', 'pathogen', 'biomarker']
+            };
+            
+            let focusScore = 0;
+            for (const [category, terms] of Object.entries(focusSynergies)) {
+                const aMatches = terms.some(term => groupA.focus.toLowerCase().includes(term));
+                const bMatches = terms.some(term => groupB.focus.toLowerCase().includes(term));
+                if (aMatches && bMatches) {
+                    focusScore = 30;
+                    break;
+                }
+            }
+            
+            const totalScore = Math.min(100, Math.round(domainScore + keywordScore + focusScore));
+            return totalScore;
+        }
+
+        function generateQRCodes() {
+            const container = document.getElementById('qr-codes-grid');
+            container.innerHTML = '';
+            
+            researchGroups.forEach(group => {
+                const qrItem = document.createElement('div');
+                qrItem.className = 'qr-code-item';
+                
+                const canvas = document.createElement('canvas');
+                canvas.className = 'qr-code-canvas';
+                canvas.width = 80;
+                canvas.height = 80;
+                
+                // Generate actual QR code if QRCode library is available
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        QRCode.toCanvas(canvas, group.id.toString(), {
+                            width: 80,
+                            height: 80,
+                            margin: 1,
+                            color: {
+                                dark: '#667eea',
+                                light: '#ffffff'
+                            }
+                        }, function(error) {
+                            if (error) {
+                                console.error('QR Code generation error:', error);
+                                // Fallback to placeholder
+                                generatePlaceholderQR(canvas, group.id);
+                            }
+                        });
+                    } catch (error) {
+                        console.error('QR Code library error:', error);
+                        generatePlaceholderQR(canvas, group.id);
+                    }
+                } else {
+                    // Fallback to placeholder if QRCode library not available
+                    generatePlaceholderQR(canvas, group.id);
+                }
+                
+                const label = document.createElement('div');
+                label.className = 'qr-code-label';
+                label.textContent = `Group ${group.id}`;
+                
+                qrItem.appendChild(canvas);
+                qrItem.appendChild(label);
+                qrItem.onclick = () => simulateQRScan(group.id);
+                container.appendChild(qrItem);
+            });
+        }
+
+        function generatePlaceholderQR(canvas, groupId) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(0, 0, 80, 80);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(groupId.toString(), 40, 48);
+        }
+
+        function startQRScanner() {
+            const video = document.getElementById('qr-video');
+            const statusDiv = document.getElementById('scan-status');
+            const startBtn = document.getElementById('start-scan');
+            const stopBtn = document.getElementById('stop-scan');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = 'Requesting camera access...';
+            statusDiv.className = 'status-message status-info';
+            
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusDiv.textContent = 'Camera API not supported in this browser. Please use the test QR codes below.';
+                statusDiv.className = 'status-message status-error';
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                } 
+            })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    qrScanner = stream;
+                    scanning = true;
+                    
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'inline-block';
+                    
+                    statusDiv.textContent = 'Scanner active. Point camera at QR code or use test codes below...';
+                    statusDiv.className = 'status-message status-success';
+                    
+                    // Wait for video to be ready before starting scan
+                    video.addEventListener('loadeddata', function() {
+                        if (typeof jsQR !== 'undefined') {
+                            scanForQR();
+                        }
+                    }, { once: true });
+                })
+                .catch(function(error) {
+                    console.error('Camera access error:', error);
+                    let errorMessage = 'Camera access error: ';
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage += 'Permission denied. Please allow camera access.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage += 'No camera found on this device.';
+                    } else if (error.name === 'NotSupportedError') {
+                        errorMessage += 'Camera not supported in this browser.';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    statusDiv.textContent = errorMessage + ' You can still use the test QR codes below.';
+                    statusDiv.className = 'status-message status-error';
+                });
+        }
+
+        function stopQRScanner() {
+            const video = document.getElementById('qr-video');
+            const statusDiv = document.getElementById('scan-status');
+            const startBtn = document.getElementById('start-scan');
+            const stopBtn = document.getElementById('stop-scan');
+            
+            if (qrScanner) {
+                qrScanner.getTracks().forEach(track => track.stop());
+                qrScanner = null;
+            }
+            
+            scanning = false;
+            video.srcObject = null;
+            
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            statusDiv.style.display = 'none';
+            
+            // Hide flashcard
+            document.getElementById('flashcard-container').style.display = 'none';
+        }
+
+        function scanForQR() {
+            if (!scanning || typeof jsQR === 'undefined') return;
+            
+            const video = document.getElementById('qr-video');
+            
+            // Check if video is ready and has valid dimensions
+            if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
+                requestAnimationFrame(scanForQR);
+                return;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code && code.data) {
+                    handleQRCode(code.data);
+                    return;
+                }
+            } catch (error) {
+                console.error('QR scanning error:', error);
+            }
+            
+            requestAnimationFrame(scanForQR);
+        }
+
+        function handleQRCode(data) {
+            const statusDiv = document.getElementById('scan-status');
+            
+            // Extract group ID from QR code data
+            const groupId = parseInt(data) || Math.floor(Math.random() * 13) + 1;
+            
+            if (groupId >= 1 && groupId <= 13) {
+                statusDiv.textContent = `QR Code detected! Displaying group ${groupId}...`;
+                statusDiv.className = 'status-message status-success';
+                
+                const group = researchGroups.find(g => g.id === groupId);
+                if (group) {
+                    displayFlashcard(group);
+                }
+            } else {
+                statusDiv.textContent = 'Invalid QR code. Please scan a research group QR code (1-13).';
+                statusDiv.className = 'status-message status-error';
+            }
+        }
+
+        function simulateQRScan(groupId) {
+            const group = researchGroups.find(g => g.id === groupId);
+            if (group) {
+                const statusDiv = document.getElementById('scan-status');
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = `Test QR Code: Displaying group ${groupId}...`;
+                statusDiv.className = 'status-message status-success';
+                displayFlashcard(group);
+            }
+        }
+
+        function displayFlashcard(group) {
+            const container = document.getElementById('flashcard-container');
+            
+            const keywordTags = group.keywords.map(keyword => 
+                `<span class="keyword-tag">${keyword}</span>`
+            ).join('');
+            
+            container.innerHTML = `
+                <div class="flashcard-display">
+                    <div class="flashcard-title">${group.name}</div>
+                    <div class="flashcard-focus">${group.focus}</div>
+                    <div class="flashcard-description">${group.description}</div>
+                    <div class="flashcard-keywords">
+                        <strong>Research Areas:</strong><br>
+                        ${keywordTags}
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+            
+            // Scroll to flashcard
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Event listeners
+        document.getElementById('start-scan').addEventListener('click', startQRScanner);
+        document.getElementById('stop-scan').addEventListener('click', stopQRScanner);
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('qr-scanner');
+        });
+
+        // Handle page unload
+        window.addEventListener('beforeunload', function() {
+            if (qrScanner) {
+                qrScanner.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
