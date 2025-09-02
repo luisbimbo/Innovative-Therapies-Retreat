@@ -1249,9 +1249,14 @@
             if (group) {
                 const statusDiv = document.getElementById('scan-status');
                 statusDiv.style.display = 'block';
-                statusDiv.textContent = `Test QR Code: Displaying group ${groupId}...`;
+                statusDiv.textContent = `Loading ${group.name}...`;
                 statusDiv.className = 'status-message status-success';
-                displayFlashcard(group);
+                
+                // Small delay to show the loading message
+                setTimeout(() => {
+                    displayFlashcard(group);
+                    statusDiv.textContent = `Displaying: ${group.name}`;
+                }, 300);
             }
         }
 
