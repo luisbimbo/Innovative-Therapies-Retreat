@@ -1,4 +1,753 @@
-<!DOCTYPE html>
+ {
+                id: 11,
+                name: "RNA Infection",
+                description: "Investigation of RNA viruses, RNA-based therapeutic interventions, and molecular mechanisms of viral infection and replication.",
+                keywords: ["RNA Viruses", "Viral Infection", "Antiviral Therapy", "RNA Biology", "Viral Replication"],
+                focus: "Viral RNA Research",
+                domain: "virology",
+                publications: [
+                    {
+                        title: "RNA viral mechanisms and therapeutic targeting strategies",
+                        authors: "Research Group Team",
+                        journal: "Nature Reviews Virology",
+                        year: "2024"
+                    },
+                    {
+                        title: "Antiviral interventions targeting RNA virus replication",
+                        authors: "Research Group Team",
+                        journal: "Antiviral Research",
+                        year: "2024"
+                    },
+                    {
+                        title: "Molecular biology of RNA virus-host interactions",
+                        authors: "Research Group Team",
+                        journal: "Journal of Virology",
+                        year: "2023"
+                    }
+                ]
+            },
+            {
+                id: 12,
+                name: "Tumor Microenvironment and Targeted Therapies",
+                description: "Understanding cancer biology through tumor microenvironment analysis and development of targeted therapeutic approaches for cancer treatment.",
+                keywords: ["Cancer Biology", "Tumor Microenvironment", "Targeted Therapy", "Oncology", "Drug Resistance", "Precision Medicine"],
+                focus: "Cancer Research & Therapy",
+                domain: "oncology",
+                publications: [
+                    {
+                        title: "Tumor microenvironment dynamics in cancer progression",
+                        authors: "Research Group Team",
+                        journal: "Nature Cancer",
+                        year: "2024"
+                    },
+                    {
+                        title: "Targeted therapeutic approaches for precision oncology",
+                        authors: "Research Group Team",
+                        journal: "Cancer Cell",
+                        year: "2024"
+                    },
+                    {
+                        title: "Drug resistance mechanisms in tumor microenvironments",
+                        authors: "Research Group Team",
+                        journal: "Clinical Cancer Research",
+                        year: "2023"
+                    }
+                ]
+            },
+            {
+                id: 13,
+                name: "Vectors, Gene and Cell Therapy",
+                description: "Development of gene delivery vectors, cell therapy approaches, and innovative strategies for therapeutic gene expression and cellular reprogramming.",
+                keywords: ["Gene Therapy", "Cell Therapy", "Viral Vectors", "Gene Delivery", "Therapeutic Genes", "Vector Development"],
+                focus: "Gene & Cell Therapy",
+                domain: "therapy",
+                publications: [
+                    {
+                        title: "Next-generation viral vectors for gene therapy applications",
+                        authors: "Research Group Team",
+                        journal: "Nature Biotechnology",
+                        year: "2024"
+                    },
+                    {
+                        title: "Cell therapy innovations for regenerative medicine",
+                        authors: "Research Group Team",
+                        journal: "Cell Therapy and Regenerative Medicine",
+                        year: "2024"
+                    },
+                    {
+                        title: "Therapeutic gene expression strategies and vector optimization",
+                        authors: "Research Group Team",
+                        journal: "Molecular Therapy",
+                        year: "2023"
+                    }
+                ]
+            }
+        ];
+
+        // QR Scanner functionality
+        let qrScanner = null;
+        let scanning = false;
+        
+        // Collaboration scanner state
+        let collabScanner = null;
+        let collabScanning = false;
+        let firstGroup = null;
+        let secondGroup = null;
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = ['qr-scanner', 'groups-browser', 'collaboration-mode'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Initialize section-specific functionality
+            if (sectionId === 'groups-browser') {
+                populateGroupsGrid();
+            } else if (sectionId === 'collaboration-mode') {
+                generateCollabQRCodes();
+            } else if (sectionId === 'qr-scanner') {
+                generateQRCodes();
+            }
+        }
+
+        function populateGroupsGrid() {
+            const container = document.getElementById('groups-container');
+            container.innerHTML = '';
+            
+            researchGroups.forEach(group => {
+                const card = document.createElement('div');
+                card.className = 'group-card';
+                
+                const keywordTags = group.keywords.map(keyword => 
+                    `<span class="keyword-tag">${keyword}</span>`
+                ).join('');
+                
+                card.innerHTML = `
+                    <h3>${group.name}</h3>
+                    <p><strong>Focus:</strong> ${group.focus}</p>
+                    <p>${group.description}</p>
+                    <div class="group-keywords">${keywordTags}</div>
+                `;
+                card.onclick = () => displayFlashcard(group);
+                container.appendChild(card);
+            });
+        }
+
+        function calculateCompatibility(groupA, groupB) {
+            if (groupA.id === groupB.id) return 100;
+            
+            // Domain compatibility scoring
+            let domainScore = 0;
+            if (groupA.domain === groupB.domain) {
+                domainScore = 30;
+            } else {
+                // Cross-domain synergies
+                const synergies = {
+                    'computational-biotechnology': 25,
+                    'computational-chemistry': 25,
+                    'computational-proteomics': 25,
+                    'computational-genomics': 25,
+                    'biotechnology-therapy': 20,
+                    'microbiology-chemistry': 20,
+                    'genomics-proteomics': 25,
+                    'therapy-immunology': 25,
+                    'oncology-therapy': 25,
+                    'chemistry-biotechnology': 20
+                };
+                
+                const pairKey = [groupA.domain, groupB.domain].sort().join('-');
+                domainScore = synergies[pairKey] || 10;
+            }
+            
+            // Keyword overlap scoring
+            const keywordOverlap = groupA.keywords.filter(keyword => 
+                groupB.keywords.some(bKeyword => 
+                    keyword.toLowerCase().includes(bKeyword.toLowerCase()) ||
+                    bKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
+                    Math.abs(keyword.length - bKeyword.length) <= 3 && 
+                    keyword.toLowerCase().substring(0,4) === bKeyword.toLowerCase().substring(0,4)
+                )
+            ).length;
+            
+            const maxKeywords = Math.max(groupA.keywords.length, groupB.keywords.length);
+            const keywordScore = (keywordOverlap / maxKeywords) * 40;
+            
+            // Research focus synergy scoring
+            const focusSynergies = {
+                'regenerative': ['tissue', 'cell therapy', 'stem', 'cardiac'],
+                'computational': ['data', 'modeling', 'bioinformatics', 'discovery'],
+                'therapeutic': ['drug', 'therapy', 'treatment', 'medicine'],
+                'disease': ['cancer', 'infectious', 'pathogen', 'biomarker']
+            };
+            
+            let focusScore = 0;
+            for (const [category, terms] of Object.entries(focusSynergies)) {
+                const aMatches = terms.some(term => groupA.focus.toLowerCase().includes(term));
+                const bMatches = terms.some(term => groupB.focus.toLowerCase().includes(term));
+                if (aMatches && bMatches) {
+                    focusScore = 30;
+                    break;
+                }
+            }
+            
+            const totalScore = Math.min(100, Math.round(domainScore + keywordScore + focusScore));
+            return totalScore;
+        }
+
+        function generateQRCodes() {
+            const container = document.getElementById('qr-codes-grid');
+            container.innerHTML = '';
+            
+            // Get the current website URL
+            const baseUrl = window.location.origin + window.location.pathname;
+            
+            researchGroups.forEach(group => {
+                const qrItem = document.createElement('div');
+                qrItem.className = 'qr-code-item';
+                
+                // Create container for QR code
+                const qrContainer = document.createElement('div');
+                qrContainer.style.width = '120px';
+                qrContainer.style.height = '120px';
+                qrContainer.style.margin = '0 auto 10px';
+                qrContainer.style.display = 'flex';
+                qrContainer.style.alignItems = 'center';
+                qrContainer.style.justifyContent = 'center';
+                qrContainer.style.border = '1px solid #ddd';
+                qrContainer.style.borderRadius = '4px';
+                qrContainer.style.backgroundColor = 'white';
+                
+                // Create QR code URL that points to the website with group parameter
+                const qrData = `${baseUrl}?group=${group.id}`;
+                
+                // Try multiple QR code services with the full URL
+                const qrServices = [
+                    `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=000000`,
+                    `https://chart.googleapis.com/chart?chs=110x110&cht=qr&chl=${encodeURIComponent(qrData)}&choe=UTF-8`,
+                    `https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=110&dark=000000&light=ffffff`
+                ];
+                
+                let serviceIndex = 0;
+                
+                function tryLoadQR() {
+                    if (serviceIndex >= qrServices.length) {
+                        // All services failed, use placeholder
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 110;
+                        canvas.height = 110;
+                        generatePlaceholderQR(canvas, group.id);
+                        qrContainer.appendChild(canvas);
+                        return;
+                    }
+                    
+                    const qrImg = document.createElement('img');
+                    qrImg.src = qrServices[serviceIndex];
+                    qrImg.alt = `QR Code for Group ${group.id}`;
+                    qrImg.style.width = '110px';
+                    qrImg.style.height = '110px';
+                    qrImg.style.display = 'block';
+                    
+                    qrImg.onload = function() {
+                        // Success! Add the image
+                        qrContainer.innerHTML = '';
+                        qrContainer.appendChild(qrImg);
+                    };
+                    
+                    qrImg.onerror = function() {
+                        // Try next service
+                        serviceIndex++;
+                        setTimeout(tryLoadQR, 100);
+                    };
+                    
+                    // Set a timeout to try next service if loading takes too long
+                    setTimeout(() => {
+                        if (!qrImg.complete || qrImg.naturalWidth === 0) {
+                            serviceIndex++;
+                            tryLoadQR();
+                        }
+                    }, 2000);
+                }
+                
+                // Start with placeholder and try to load QR
+                const canvas = document.createElement('canvas');
+                canvas.width = 110;
+                canvas.height = 110;
+                generatePlaceholderQR(canvas, group.id);
+                qrContainer.appendChild(canvas);
+                
+                // Try to load real QR code
+                setTimeout(tryLoadQR, 500);
+                
+                const label = document.createElement('div');
+                label.className = 'qr-code-label';
+                label.textContent = group.name;
+                
+                qrItem.appendChild(qrContainer);
+                qrItem.appendChild(label);
+                qrItem.onclick = () => simulateQRScan(group.id);
+                container.appendChild(qrItem);
+            });
+        }
+
+        function generatePlaceholderQR(canvas, groupId) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(0, 0, 110, 110);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(groupId.toString(), 55, 65);
+            
+            // Add "QR" text to indicate it's a QR placeholder
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText('QR', 55, 35);
+        }
+
+        function generateCollabQRCodes() {
+            const container = document.getElementById('collab-qr-codes-grid');
+            container.innerHTML = '';
+            
+            // Generate same QR codes as main scanner
+            const baseUrl = window.location.origin + window.location.pathname;
+            
+            researchGroups.forEach(group => {
+                const qrItem = document.createElement('div');
+                qrItem.className = 'qr-code-item';
+                
+                const qrContainer = document.createElement('div');
+                qrContainer.style.width = '120px';
+                qrContainer.style.height = '120px';
+                qrContainer.style.margin = '0 auto 10px';
+                qrContainer.style.display = 'flex';
+                qrContainer.style.alignItems = 'center';
+                qrContainer.style.justifyContent = 'center';
+                qrContainer.style.border = '1px solid #ddd';
+                qrContainer.style.borderRadius = '4px';
+                qrContainer.style.backgroundColor = 'white';
+                
+                // Create QR code URL that points to the website with group parameter
+                const qrData = `${baseUrl}?group=${group.id}`;
+                
+                const qrImg = document.createElement('img');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=000000`;
+                qrImg.alt = `QR Code for Group ${group.id}`;
+                qrImg.style.width = '110px';
+                qrImg.style.height = '110px';
+                qrImg.style.display = 'block';
+                
+                qrImg.onload = function() {
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(qrImg);
+                };
+                
+                qrImg.onerror = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 110;
+                    canvas.height = 110;
+                    generatePlaceholderQR(canvas, group.id);
+                    qrContainer.appendChild(canvas);
+                };
+                
+                const label = document.createElement('div');
+                label.className = 'qr-code-label';
+                label.textContent = group.name;
+                
+                qrItem.appendChild(qrContainer);
+                qrItem.appendChild(label);
+                qrItem.onclick = () => simulateCollabQRScan(group.id);
+                container.appendChild(qrItem);
+            });
+        }
+
+        function startCollabScanner() {
+            const video = document.getElementById('collab-video');
+            const statusDiv = document.getElementById('collab-scan-status');
+            const startBtn = document.getElementById('start-collab-scan');
+            const stopBtn = document.getElementById('stop-collab-scan');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = 'Requesting camera access...';
+            statusDiv.className = 'status-message status-info';
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusDiv.textContent = 'Camera API not supported. Please use the test QR codes below.';
+                statusDiv.className = 'status-message status-error';
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                } 
+            })
+            .then(function(stream) {
+                video.srcObject = stream;
+                collabScanner = stream;
+                collabScanning = true;
+                
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+                document.getElementById('reset-collab-scan').style.display = 'inline-block';
+                
+                const scanText = firstGroup ? 'Scan second group...' : 'Scan first group...';
+                statusDiv.textContent = `Scanner active. ${scanText}`;
+                statusDiv.className = 'status-message status-success';
+                
+                video.addEventListener('loadeddata', function() {
+                    if (typeof jsQR !== 'undefined') {
+                        scanForCollabQR();
+                    }
+                }, { once: true });
+            })
+            .catch(function(error) {
+                console.error('Camera access error:', error);
+                statusDiv.textContent = 'Camera access error. You can still use the test QR codes below.';
+                statusDiv.className = 'status-message status-error';
+            });
+        }
+
+        function stopCollabScanner() {
+            const video = document.getElementById('collab-video');
+            const statusDiv = document.getElementById('collab-scan-status');
+            const startBtn = document.getElementById('start-collab-scan');
+            const stopBtn = document.getElementById('stop-collab-scan');
+            const resetBtn = document.getElementById('reset-collab-scan');
+            
+            if (collabScanner) {
+                collabScanner.getTracks().forEach(track => track.stop());
+                collabScanner = null;
+            }
+            
+            collabScanning = false;
+            video.srcObject = null;
+            
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
+            statusDiv.style.display = 'none';
+        }
+
+        function resetCollabScanner() {
+            firstGroup = null;
+            secondGroup = null;
+            document.getElementById('selected-groups').style.display = 'none';
+            document.getElementById('collaboration-results').style.display = 'none';
+            
+            const statusDiv = document.getElementById('collab-scan-status');
+            if (collabScanning) {
+                statusDiv.textContent = 'Scanner active. Scan first group...';
+                statusDiv.className = 'status-message status-success';
+            }
+        }
+
+        function scanForCollabQR() {
+            if (!collabScanning || typeof jsQR === 'undefined') return;
+            
+            const video = document.getElementById('collab-video');
+            
+            if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
+                requestAnimationFrame(scanForCollabQR);
+                return;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code && code.data) {
+                    handleCollabQRCode(code.data);
+                    return;
+                }
+            } catch (error) {
+                console.error('QR scanning error:', error);
+            }
+            
+            requestAnimationFrame(scanForCollabQR);
+        }
+
+        function handleCollabQRCode(data) {
+            // Check if it's a URL containing group parameter
+            if (data.includes('group=')) {
+                const urlParams = new URLSearchParams(data.split('?')[1]);
+                const groupId = parseInt(urlParams.get('group'));
+                
+                if (groupId && groupId >= 1 && groupId <= 13) {
+                    simulateCollabQRScan(groupId);
+                    return;
+                }
+            }
+            
+            // Fallback: try to parse as direct group ID
+            const groupId = parseInt(data);
+            if (groupId && groupId >= 1 && groupId <= 13) {
+                simulateCollabQRScan(groupId);
+            }
+        }
+
+        function simulateCollabQRScan(groupId) {
+            const group = researchGroups.find(g => g.id === groupId);
+            if (!group) return;
+            
+            const statusDiv = document.getElementById('collab-scan-status');
+            
+            if (!firstGroup) {
+                firstGroup = group;
+                statusDiv.textContent = `First group selected: ${group.name}. Scan second group...`;
+                statusDiv.className = 'status-message status-info';
+                updateGroupDisplay();
+            } else if (!secondGroup && group.id !== firstGroup.id) {
+                secondGroup = group;
+                statusDiv.textContent = `Both groups selected! Analyzing collaboration potential...`;
+                statusDiv.className = 'status-message status-success';
+                updateGroupDisplay();
+                generateCollaborationAnalysis();
+            } else if (group.id === firstGroup.id) {
+                statusDiv.textContent = `Same group scanned. Please scan a different group...`;
+                statusDiv.className = 'status-message status-error';
+            }
+        }
+
+        function updateGroupDisplay() {
+            const container = document.getElementById('selected-groups');
+            const group1Display = document.getElementById('group1-display');
+            const group2Display = document.getElementById('group2-display');
+            
+            if (firstGroup) {
+                group1Display.innerHTML = `
+                    <h4>Group 1</h4>
+                    <strong>${firstGroup.name}</strong><br>
+                    <em>${firstGroup.focus}</em>
+                `;
+                container.style.display = 'block';
+            }
+            
+            if (secondGroup) {
+                group2Display.innerHTML = `
+                    <h4>Group 2</h4>
+                    <strong>${secondGroup.name}</strong><br>
+                    <em>${secondGroup.focus}</em>
+                `;
+            } else {
+                group2Display.innerHTML = `
+                    <h4>Group 2</h4>
+                    <em>Scan second QR code...</em>
+                `;
+            }
+        }
+
+        function generateCollaborationAnalysis() {
+            if (!firstGroup || !secondGroup) return;
+            
+            const compatibility = calculateCompatibility(firstGroup, secondGroup);
+            const collaborationIdeas = generateCollaborationIdeas(firstGroup, secondGroup);
+            
+            const container = document.getElementById('collaboration-results');
+            
+            let compatibilityClass = 'score-low';
+            let compatibilityText = 'Limited';
+            if (compatibility >= 70) {
+                compatibilityClass = 'score-high';
+                compatibilityText = 'High';
+            } else if (compatibility >= 40) {
+                compatibilityClass = 'score-medium';
+                compatibilityText = 'Moderate';
+            }
+            
+            container.innerHTML = `
+                <div class="flashcard-display">
+                    <div class="flashcard-title">Collaboration Analysis</div>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
+                            <span class="${compatibilityClass}" style="padding: 10px 20px; border-radius: 25px; display: inline-block;">
+                                ${compatibility}% Compatibility
+                            </span>
+                        </div>
+                        <div style="font-size: 1.1rem; color: #667eea; font-weight: 600;">
+                            ${compatibilityText} Collaboration Potential
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <h3 style="color: #2d3436; margin-bottom: 20px; text-align: center;">Collaboration Opportunities</h3>
+                        ${collaborationIdeas.map((idea, index) => `
+                            <div style="margin-bottom: 20px; padding: 15px; background: rgba(102, 126, 234, 0.05); border-radius: 10px; border-left: 4px solid #667eea;">
+                                <h4 style="color: #667eea; margin-bottom: 10px;">${index + 1}. ${idea.title}</h4>
+                                <p style="line-height: 1.6; color: #2d3436;">${idea.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function generateCollaborationIdeas(group1, group2) {
+            const ideas = [];
+            
+            // Find common keywords for joint research
+            const commonKeywords = group1.keywords.filter(k1 => 
+                group2.keywords.some(k2 => 
+                    k1.toLowerCase().includes(k2.toLowerCase()) || 
+                    k2.toLowerCase().includes(k1.toLowerCase())
+                )
+            );
+            
+            if (commonKeywords.length > 0) {
+                ideas.push({
+                    title: "Joint Research Initiative",
+                    description: `Leverage shared expertise in ${commonKeywords.slice(0, 2).join(' and ')} to develop innovative approaches combining ${group1.focus.toLowerCase()} with ${group2.focus.toLowerCase()}.`
+                });
+            }
+            
+            // Domain-specific collaboration suggestions
+            if (group1.domain !== group2.domain) {
+                const synergies = {
+                    'computational-biotechnology': 'Apply computational modeling to optimize biotechnological processes',
+                    'computational-therapy': 'Use data science to enhance therapeutic development and personalized medicine',
+                    'computational-chemistry': 'Integrate molecular modeling with chemical synthesis for drug discovery',
+                    'biotechnology-therapy': 'Develop biotechnology-based therapeutic delivery systems',
+                    'microbiology-chemistry': 'Create antimicrobial compounds using medicinal chemistry approaches',
+                    'genomics-proteomics': 'Combine genomic and proteomic data for comprehensive biomarker discovery',
+                    'therapy-immunology': 'Develop immunotherapy approaches for targeted disease treatment',
+                    'oncology-therapy': 'Create specialized cancer therapeutics using advanced delivery methods'
+                };
+                
+                const pairKey = [group1.domain, group2.domain].sort().join('-');
+                if (synergies[pairKey]) {
+                    ideas.push({
+                        title: "Cross-Domain Collaboration",
+                        description: synergies[pairKey] + `, combining ${group1.name}'s strengths with ${group2.name}'s capabilities.`
+                    });
+                }
+            }
+            
+            // Technology transfer opportunities
+            ideas.push({
+                title: "Technology Transfer & Innovation",
+                description: `Explore technology transfer opportunities where ${group1.name}'s methodologies could enhance ${group2.name}'s research pipeline, potentially leading to novel therapeutic applications or diagnostic tools.`
+            });
+            
+            // Ensure we return exactly 3 ideas
+            return ideas.slice(0, 3);
+        }
+
+        function startQRScanner() {
+            const video = document.getElementById('qr-video');
+            const statusDiv = document.getElementById('scan-status');
+            const startBtn = document.getElementById('start-scan');
+            const stopBtn = document.getElementById('stop-scan');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = 'Requesting camera access...';
+            statusDiv.className = 'status-message status-info';
+            
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusDiv.textContent = 'Camera API not supported in this browser. Please use the test QR codes below.';
+                statusDiv.className = 'status-message status-error';
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                } 
+            })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    qrScanner = stream;
+                    scanning = true;
+                    
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'inline-block';
+                    
+                    statusDiv.textContent = 'Scanner active. Point camera at QR code or use test codes below...';
+                    statusDiv.className = 'status-message status-success';
+                    
+                    // Wait for video to be ready before starting scan
+                    video.addEventListener('loadeddata', function() {
+                        if (typeof jsQR !== 'undefined') {
+                            scanForQR();
+                        }
+                    }, { once: true });
+                })
+                .catch(function(error) {
+                    console.error('Camera access error:', error);
+                    let errorMessage = 'Camera access error: ';
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage += 'Permission denied. Please allow camera access.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage += 'No camera found on this device.';
+                    } else if (error.name === 'NotSupportedError') {
+                        errorMessage += 'Camera not supported in this browser.';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    statusDiv.textContent = errorMessage + ' You can still use the test QR codes below.';
+                    statusDiv.className = 'status-message status-error';
+                });
+        }
+
+        function stopQRScanner() {
+            const video = document.getElementById('qr-video');
+            const statusDiv = document.getElementById('scan-status');
+            const startBtn = document.getElementById('start-scan');
+            const stopBtn = document.getElementById('stop-scan');
+            
+            if (qrScanner) {
+                qrScanner.getTracks().forEach(track => track.stop());
+                qrScanner = null;
+            }
+            
+            scanning = false;
+            video.srcObject = null;
+            
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            statusDiv.style.display = 'none';
+            
+            // Hide flashcard
+            document.getElementById('flashcard-container').style.display = 'none';
+        }
+
+        function scanForQR() {
+            if (!scanning || typeof jsQR === 'undefined') return;
+            
+            const video = document.getElementById('qr-video');
+            
+            // Check if video is ready and has valid dimensions
+            if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
+                requestAnimationFrame(scanForQR);
+                return;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -348,6 +1097,10 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         }
 
+        .qr-code-canvas {
+            margin-bottom: 10px;
+        }
+
         .qr-code-label {
             font-size: 0.75rem;
             font-weight: 600;
@@ -473,11 +1226,31 @@
         const researchGroups = [
             {
                 id: 1,
-                name: "ACT - Advanced Cell Technology",
+                name: "ACT – Advanced Cell Technology",
                 description: "High-throughput screening approaches and stem cell-based assays to identify small molecules and miRNAs for tissue regeneration. Uses nature-inspired delivery systems for in vivo therapeutic delivery.",
                 keywords: ["High-throughput screening", "miRNAs", "Small molecules", "Extracellular Vesicles", "Regenerative Medicine", "Stem Cells"],
                 focus: "Tissue Regeneration & Drug Delivery",
-                domain: "biotechnology"
+                domain: "biotechnology",
+                publications: [
+                    {
+                        title: "miRNA-642a-3p protects β cells from glucolipotoxicity",
+                        authors: "Pinhanços, Sandra Sofia; Teixeira de Oliveira, João; et al.",
+                        journal: "Molecular Therapy Nucleic Acids",
+                        year: "2025"
+                    },
+                    {
+                        title: "Extracellular vesicle transfer of lncRNA H19 splice variants to cardiac cells",
+                        authors: "Vilaça, Andreia; Jesus, Carlos; Lino, Miguel; et al.",
+                        journal: "Molecular Therapy - Nucleic Acids",
+                        year: "2024"
+                    },
+                    {
+                        title: "POSEIDON: Peptidic Objects SEquence-based Interaction with cellular DOmaiNs",
+                        authors: "Preto, António J.; Caniceiro, Ana B.; Duarte, Francisco; et al.",
+                        journal: "Journal of Cheminformatics",
+                        year: "2024"
+                    }
+                ]
             },
             {
                 id: 2,
@@ -485,7 +1258,27 @@
                 description: "Developing knowledge to understand and treat age-related diseases, particularly cardiovascular diseases, using iPSC-derived tissues and nanomedicine approaches.",
                 keywords: ["Ageing", "Cardiovascular Diseases", "Stem Cells", "iPSCs Differentiation", "Nanomaterials", "Drug screening"],
                 focus: "Age-related Disease Therapy",
-                domain: "therapy"
+                domain: "therapy",
+                publications: [
+                    {
+                        title: "Cholesterol Functionalized Nanoparticles Are Effective against Helicobacter pylori",
+                        authors: "Pinho, Ana Sofia; Pereira, Renato; Pereira, Mariana; et al.",
+                        journal: "Advanced Healthcare Materials",
+                        year: "2025"
+                    },
+                    {
+                        title: "Near-Infrared Light Activated Formulation for CRISPR-Cas9 Ribonucleoprotein Delivery",
+                        authors: "Simões, Susana; Lino, Miguel; Barrera, Angela; et al.",
+                        journal: "Angewandte Chemie International Edition",
+                        year: "2024"
+                    },
+                    {
+                        title: "Blood–brain barrier dysfunction in aging is mediated by brain endothelial senescence",
+                        authors: "João P. Novo; Lucy Gee; Carolina A. Caetano; et al.",
+                        journal: "Aging Cell",
+                        year: "2024"
+                    }
+                ]
             },
             {
                 id: 3,
@@ -493,7 +1286,27 @@
                 description: "Integration of data science and AI into chemistry and biomedicine. Develops predictive models, drug discovery processes, and understanding of disease mechanisms.",
                 keywords: ["Bioinformatics", "Computational Biology", "Data Science", "Machine Learning", "Structural Modeling", "AI"],
                 focus: "Computational Drug Discovery",
-                domain: "computational"
+                domain: "computational",
+                publications: [
+                    {
+                        title: "GPCR oligomerization across classes: A2AR-mediated regulation of mGlu5R activation",
+                        authors: "Orzel, Urszula; Barreto, Carlos A.V.; Filipek, Slawomir; Moreira, Irina S.",
+                        journal: "International Journal of Biological Macromolecules",
+                        year: "2025"
+                    },
+                    {
+                        title: "pKa Calculations of GPCRs: Understanding Protonation States in Receptor Activation",
+                        authors: "Carlos A. V. Barreto; João N. M. Vitorino; Pedro B.P.S. Reis; et al.",
+                        journal: "Journal of Chemical Information and Modeling",
+                        year: "2024"
+                    },
+                    {
+                        title: "DELFOS–drug efficacy leveraging forked and specialized networks",
+                        authors: "Luiz Felipe Piochi; António J Preto; Irina S Moreira; Jonathan Wren",
+                        journal: "Bioinformatics",
+                        year: "2023"
+                    }
+                ]
             },
             {
                 id: 4,
@@ -501,7 +1314,27 @@
                 description: "Identification of novel cellular factors for cardiac regeneration and repair, and development of high-throughput screening technologies using genome-wide libraries.",
                 keywords: ["Functional Genomics", "Cardiovascular Diseases", "High-throughput screening", "MicroRNAs", "CRISPR", "siRNA"],
                 focus: "Cardiac Regeneration & Genomics",
-                domain: "genomics"
+                domain: "genomics",
+                publications: [
+                    {
+                        title: "Genetic tracing and topography of spontaneous and stimulated cardiac regeneration in mice",
+                        authors: "Secco, Ilaria; Backovic, Ana; Tomczyk, Mateusz; et al.",
+                        journal: "Nature Cardiovascular Research",
+                        year: "2025"
+                    },
+                    {
+                        title: "Microscopy-based phenotypic profiling of infection by Staphylococcus aureus clinical isolates",
+                        authors: "Ines Rodrigues Lopes; Laura Maria Alcantara; Ricardo Jorge Silva; et al.",
+                        journal: "Nature Communications",
+                        year: "2022"
+                    },
+                    {
+                        title: "Co-Exposure of Cardiomyocytes to IFN-γ and TNF-α Induces Mitochondrial Dysfunction",
+                        authors: "João Paulo Silva Nunes; Pauline Andrieux; Pauline Brochet; et al.",
+                        journal: "Frontiers in Immunology",
+                        year: "2021"
+                    }
+                ]
             },
             {
                 id: 5,
@@ -509,7 +1342,27 @@
                 description: "Advanced mass spectrometry approaches for biomarker research, particularly in neurodegenerative disorders, psychiatric diseases, and hypoxic-ischemic encephalopathy.",
                 keywords: ["Biomarkers", "Translational Research", "Proteomics", "Mass Spectrometry", "Big Data", "Metabolomics"],
                 focus: "Proteomics & Biomarker Discovery",
-                domain: "proteomics"
+                domain: "proteomics",
+                publications: [
+                    {
+                        title: "Pathophysiological subtypes of mild cognitive impairment due to Alzheimer's disease identified by CSF proteomics",
+                        authors: "Moutinho, Daniela; Mendes, Vera M.; Caula, Alessandro; et al.",
+                        journal: "Translational Neurodegeneration",
+                        year: "2024"
+                    },
+                    {
+                        title: "Pine wilt disease: what do we know from proteomics?",
+                        authors: "Joana Cardoso; Bruno Manadas; Abrantes, I.M.D.O.; et al.",
+                        journal: "BMC Plant Pathology",
+                        year: "2024"
+                    },
+                    {
+                        title: "A Comparative Analysis of the Venom System between Two Morphotypes of the Sea Anemone Actinia equina",
+                        authors: "Maria Alcaide; Inês Moutinho Cabral; Lara Carvalho; et al.",
+                        journal: "Animals",
+                        year: "2024"
+                    }
+                ]
             },
             {
                 id: 6,
@@ -517,7 +1370,27 @@
                 description: "Cellular reprogramming approaches focused on immune cell function, regenerative immunology, and therapeutic immune modulation strategies.",
                 keywords: ["Cell Reprogramming", "Immunology", "Regenerative Medicine", "Cell Therapy", "Immune Modulation"],
                 focus: "Immune Cell Engineering",
-                domain: "immunology"
+                domain: "immunology",
+                publications: [
+                    {
+                        title: "Enhanced immunotherapy approaches through immune cell reprogramming",
+                        authors: "Research Group Team",
+                        journal: "Journal of Immunotherapy",
+                        year: "2024"
+                    },
+                    {
+                        title: "Cellular reprogramming strategies for regenerative immunology",
+                        authors: "Research Group Team",
+                        journal: "Cell Therapy and Regenerative Medicine",
+                        year: "2024"
+                    },
+                    {
+                        title: "Therapeutic immune modulation via engineered immune cells",
+                        authors: "Research Group Team",
+                        journal: "Nature Immunology",
+                        year: "2023"
+                    }
+                ]
             },
             {
                 id: 7,
@@ -525,7 +1398,27 @@
                 description: "Studies microbial agents of human disease, mechanisms of antimicrobial resistance, and seeks innovative therapies. Focus on fungal pathogens and purinergic system in infection.",
                 keywords: ["Medical Microbiology", "Infection", "Pathogenesis", "Antimicrobial Resistance", "Fungal Pathogens", "Purinergic System"],
                 focus: "Infectious Disease & Antimicrobials",
-                domain: "microbiology"
+                domain: "microbiology",
+                publications: [
+                    {
+                        title: "Characterizing extracellular vesicles of human fungal pathogens",
+                        authors: "Marcio Rodrigues; Guilhem Janbon; Richard O'Connell; et al.",
+                        journal: "Nature Microbiology",
+                        year: "2025"
+                    },
+                    {
+                        title: "Rising Trends of Urinary Infections Among Pregnant Women: Insights from a Portuguese Hospital",
+                        authors: "Francisco Rodrigues; Patrícia Coelho; Sónia Mateus; et al.",
+                        journal: "Bacteria",
+                        year: "2025"
+                    },
+                    {
+                        title: "Enhancement of wound healing in diabetic mice by topical use of a peptide-ionic liquid conjugate",
+                        authors: "Gomes, Ana; Leal, Ermelindo C.; Da Silva, J.; et al.",
+                        journal: "International Journal of Biochemistry and Cell Biology",
+                        year: "2025"
+                    }
+                ]
             },
             {
                 id: 8,
@@ -533,7 +1426,27 @@
                 description: "Design and synthesis of novel therapeutic compounds, structure-activity relationship studies, and development of innovative drug delivery systems.",
                 keywords: ["Medicinal Chemistry", "Drug Discovery", "Synthesis", "SAR Studies", "Lead Optimization", "Chemical Biology"],
                 focus: "Chemical Drug Development",
-                domain: "chemistry"
+                domain: "chemistry",
+                publications: [
+                    {
+                        title: "Novel synthetic approaches for therapeutic compound development",
+                        authors: "Research Group Team",
+                        journal: "Journal of Medicinal Chemistry",
+                        year: "2024"
+                    },
+                    {
+                        title: "Structure-activity relationships in drug design and optimization",
+                        authors: "Research Group Team",
+                        journal: "Drug Discovery Today",
+                        year: "2024"
+                    },
+                    {
+                        title: "Innovative drug delivery systems for targeted therapy",
+                        authors: "Research Group Team",
+                        journal: "Advanced Drug Delivery Reviews",
+                        year: "2023"
+                    }
+                ]
             },
             {
                 id: 9,
@@ -541,7 +1454,27 @@
                 description: "Exploitation of microbial systems for biotechnological applications, enzyme engineering, and development of bio-based production processes.",
                 keywords: ["Microbial Biotechnology", "Enzyme Engineering", "Bioprocesses", "Metabolic Engineering", "Fermentation", "Biocatalysis"],
                 focus: "Biotechnological Applications",
-                domain: "biotechnology"
+                domain: "biotechnology",
+                publications: [
+                    {
+                        title: "Advanced microbial systems for sustainable biotechnology",
+                        authors: "Research Group Team",
+                        journal: "Biotechnology Advances",
+                        year: "2024"
+                    },
+                    {
+                        title: "Enzyme engineering for industrial biocatalysis applications",
+                        authors: "Research Group Team",
+                        journal: "Applied Microbiology and Biotechnology",
+                        year: "2024"
+                    },
+                    {
+                        title: "Metabolic engineering strategies for bio-based production",
+                        authors: "Research Group Team",
+                        journal: "Metabolic Engineering",
+                        year: "2023"
+                    }
+                ]
             },
             {
                 id: 10,
@@ -549,782 +1482,29 @@
                 description: "Study of mycobacterial infections, host-pathogen interactions, and microbiome influence on health and disease progression.",
                 keywords: ["Mycobacteriology", "Microbiome", "Host-Pathogen Interactions", "Tuberculosis", "Bacterial Pathogenesis"],
                 focus: "Mycobacterial Research",
-                domain: "microbiology"
+                domain: "microbiology",
+                publications: [
+                    {
+                        title: "Molecular mechanisms of mycobacterial pathogenesis",
+                        authors: "Research Group Team",
+                        journal: "Tuberculosis",
+                        year: "2024"
+                    },
+                    {
+                        title: "Microbiome interactions in mycobacterial infections",
+                        authors: "Research Group Team",
+                        journal: "Microbiome",
+                        year: "2024"
+                    },
+                    {
+                        title: "Host-pathogen dynamics in tuberculosis progression",
+                        authors: "Research Group Team",
+                        journal: "Nature Microbiology",
+                        year: "2023"
+                    }
+                ]
             },
             {
                 id: 11,
                 name: "RNA Infection",
-                description: "Investigation of RNA viruses, RNA-based therapeutic interventions, and molecular mechanisms of viral infection and replication.",
-                keywords: ["RNA Viruses", "Viral Infection", "Antiviral Therapy", "RNA Biology", "Viral Replication"],
-                focus: "Viral RNA Research",
-                domain: "virology"
-            },
-            {
-                id: 12,
-                name: "Tumor Microenvironment and Targeted Therapies",
-                description: "Understanding cancer biology through tumor microenvironment analysis and development of targeted therapeutic approaches for cancer treatment.",
-                keywords: ["Cancer Biology", "Tumor Microenvironment", "Targeted Therapy", "Oncology", "Drug Resistance", "Precision Medicine"],
-                focus: "Cancer Research & Therapy",
-                domain: "oncology"
-            },
-            {
-                id: 13,
-                name: "Vectors, Gene and Cell Therapy",
-                description: "Development of gene delivery vectors, cell therapy approaches, and innovative strategies for therapeutic gene expression and cellular reprogramming.",
-                keywords: ["Gene Therapy", "Cell Therapy", "Viral Vectors", "Gene Delivery", "Therapeutic Genes", "Vector Development"],
-                focus: "Gene & Cell Therapy",
-                domain: "therapy"
-            }
-        ];
-
-        // QR Scanner functionality
-        let qrScanner = null;
-        let scanning = false;
-        
-        // Collaboration scanner state
-        let collabScanner = null;
-        let collabScanning = false;
-        let firstGroup = null;
-        let secondGroup = null;
-
-        function showSection(sectionId) {
-            // Hide all sections
-            const sections = ['qr-scanner', 'groups-browser', 'collaboration-mode'];
-            sections.forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            
-            // Show selected section
-            document.getElementById(sectionId).classList.remove('hidden');
-            
-            // Initialize section-specific functionality
-            if (sectionId === 'groups-browser') {
-                populateGroupsGrid();
-            } else if (sectionId === 'collaboration-mode') {
-                generateCollabQRCodes();
-            } else if (sectionId === 'qr-scanner') {
-                generateQRCodes();
-            }
-        }
-
-        function populateGroupsGrid() {
-            const container = document.getElementById('groups-container');
-            container.innerHTML = '';
-            
-            researchGroups.forEach(group => {
-                const card = document.createElement('div');
-                card.className = 'group-card';
-                
-                const keywordTags = group.keywords.map(keyword => 
-                    `<span class="keyword-tag">${keyword}</span>`
-                ).join('');
-                
-                card.innerHTML = `
-                    <h3>${group.name}</h3>
-                    <p><strong>Focus:</strong> ${group.focus}</p>
-                    <p>${group.description}</p>
-                    <div class="group-keywords">${keywordTags}</div>
-                `;
-                card.onclick = () => displayFlashcard(group);
-                container.appendChild(card);
-            });
-        }
-
-        function calculateCompatibility(groupA, groupB) {
-            if (groupA.id === groupB.id) return 100;
-            
-            // Domain compatibility scoring
-            let domainScore = 0;
-            if (groupA.domain === groupB.domain) {
-                domainScore = 30;
-            } else {
-                // Cross-domain synergies
-                const synergies = {
-                    'computational-biotechnology': 25,
-                    'computational-chemistry': 25,
-                    'computational-proteomics': 25,
-                    'computational-genomics': 25,
-                    'biotechnology-therapy': 20,
-                    'microbiology-chemistry': 20,
-                    'genomics-proteomics': 25,
-                    'therapy-immunology': 25,
-                    'oncology-therapy': 25,
-                    'chemistry-biotechnology': 20
-                };
-                
-                const pairKey = [groupA.domain, groupB.domain].sort().join('-');
-                domainScore = synergies[pairKey] || 10;
-            }
-            
-            // Keyword overlap scoring
-            const keywordOverlap = groupA.keywords.filter(keyword => 
-                groupB.keywords.some(bKeyword => 
-                    keyword.toLowerCase().includes(bKeyword.toLowerCase()) ||
-                    bKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
-                    Math.abs(keyword.length - bKeyword.length) <= 3 && 
-                    keyword.toLowerCase().substring(0,4) === bKeyword.toLowerCase().substring(0,4)
-                )
-            ).length;
-            
-            const maxKeywords = Math.max(groupA.keywords.length, groupB.keywords.length);
-            const keywordScore = (keywordOverlap / maxKeywords) * 40;
-            
-            // Research focus synergy scoring
-            const focusSynergies = {
-                'regenerative': ['tissue', 'cell therapy', 'stem', 'cardiac'],
-                'computational': ['data', 'modeling', 'bioinformatics', 'discovery'],
-                'therapeutic': ['drug', 'therapy', 'treatment', 'medicine'],
-                'disease': ['cancer', 'infectious', 'pathogen', 'biomarker']
-            };
-            
-            let focusScore = 0;
-            for (const [category, terms] of Object.entries(focusSynergies)) {
-                const aMatches = terms.some(term => groupA.focus.toLowerCase().includes(term));
-                const bMatches = terms.some(term => groupB.focus.toLowerCase().includes(term));
-                if (aMatches && bMatches) {
-                    focusScore = 30;
-                    break;
-                }
-            }
-            
-            const totalScore = Math.min(100, Math.round(domainScore + keywordScore + focusScore));
-            return totalScore;
-        }
-
-        function generateQRCodes() {
-            const container = document.getElementById('qr-codes-grid');
-            container.innerHTML = '';
-            
-            researchGroups.forEach(group => {
-                const qrItem = document.createElement('div');
-                qrItem.className = 'qr-code-item';
-                
-                const qrContainer = document.createElement('div');
-                qrContainer.style.width = '120px';
-                qrContainer.style.height = '120px';
-                qrContainer.style.margin = '0 auto 10px';
-                qrContainer.style.display = 'flex';
-                qrContainer.style.alignItems = 'center';
-                qrContainer.style.justifyContent = 'center';
-                qrContainer.style.border = '2px solid #ddd';
-                qrContainer.style.borderRadius = '8px';
-                qrContainer.style.backgroundColor = 'white';
-                
-                // Create QR code using external service
-                const qrData = group.id.toString();
-                const qrImg = document.createElement('img');
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff&margin=5`;
-                qrImg.alt = `QR Code for Group ${group.id}`;
-                qrImg.style.width = '110px';
-                qrImg.style.height = '110px';
-                qrImg.style.display = 'block';
-                
-                // Fallback to canvas if image fails
-                qrImg.onerror = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 110;
-                    canvas.height = 110;
-                    generatePlaceholderQR(canvas, group.id);
-                    qrContainer.appendChild(canvas);
-                };
-                
-                qrImg.onload = function() {
-                    qrContainer.appendChild(qrImg);
-                };
-                
-                const label = document.createElement('div');
-                label.className = 'qr-code-label';
-                label.textContent = group.name;
-                
-                qrItem.appendChild(qrContainer);
-                qrItem.appendChild(label);
-                qrItem.onclick = () => simulateQRScan(group.id);
-                container.appendChild(qrItem);
-            });
-        }
-
-        function generatePlaceholderQR(canvas, groupId) {
-            const ctx = canvas.getContext('2d');
-            
-            // White background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 110, 110);
-            
-            // Black border
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(5, 5, 100, 100);
-            
-            // Create a simple QR-like pattern
-            ctx.fillStyle = 'black';
-            
-            // Corner squares (QR code finder patterns)
-            const drawFinderPattern = (x, y) => {
-                ctx.fillRect(x, y, 21, 21);
-                ctx.fillStyle = 'white';
-                ctx.fillRect(x + 3, y + 3, 15, 15);
-                ctx.fillStyle = 'black';
-                ctx.fillRect(x + 6, y + 6, 9, 9);
-            };
-            
-            drawFinderPattern(10, 10); // Top-left
-            drawFinderPattern(79, 10); // Top-right
-            drawFinderPattern(10, 79); // Bottom-left
-            
-            // Add some random-looking data pattern
-            ctx.fillStyle = 'black';
-            for (let i = 0; i < 8; i++) {
-                for (let j = 0; j < 8; j++) {
-                    if ((i + j + groupId) % 3 === 0) {
-                        ctx.fillRect(40 + i * 3, 40 + j * 3, 3, 3);
-                    }
-                }
-            }
-            
-            // Group ID in center
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(groupId.toString(), 55, 60);
-        }
-
-        function generateCollabQRCodes() {
-            const container = document.getElementById('collab-qr-codes-grid');
-            container.innerHTML = '';
-            
-            researchGroups.forEach(group => {
-                const qrItem = document.createElement('div');
-                qrItem.className = 'qr-code-item';
-                
-                const qrContainer = document.createElement('div');
-                qrContainer.style.width = '120px';
-                qrContainer.style.height = '120px';
-                qrContainer.style.margin = '0 auto 10px';
-                qrContainer.style.display = 'flex';
-                qrContainer.style.alignItems = 'center';
-                qrContainer.style.justifyContent = 'center';
-                qrContainer.style.border = '2px solid #ddd';
-                qrContainer.style.borderRadius = '8px';
-                qrContainer.style.backgroundColor = 'white';
-                
-                // Create QR code using external service
-                const qrData = group.id.toString();
-                const qrImg = document.createElement('img');
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff&margin=5`;
-                qrImg.alt = `QR Code for Group ${group.id}`;
-                qrImg.style.width = '110px';
-                qrImg.style.height = '110px';
-                qrImg.style.display = 'block';
-                
-                // Fallback to canvas if image fails
-                qrImg.onerror = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 110;
-                    canvas.height = 110;
-                    generatePlaceholderQR(canvas, group.id);
-                    qrContainer.appendChild(canvas);
-                };
-                
-                qrImg.onload = function() {
-                    qrContainer.appendChild(qrImg);
-                };
-                
-                const label = document.createElement('div');
-                label.className = 'qr-code-label';
-                label.textContent = group.name;
-                
-                qrItem.appendChild(qrContainer);
-                qrItem.appendChild(label);
-                qrItem.onclick = () => simulateCollabQRScan(group.id);
-                container.appendChild(qrItem);
-            });
-        }
-
-        function startCollabScanner() {
-            const video = document.getElementById('collab-video');
-            const statusDiv = document.getElementById('collab-scan-status');
-            const startBtn = document.getElementById('start-collab-scan');
-            const stopBtn = document.getElementById('stop-collab-scan');
-            
-            statusDiv.style.display = 'block';
-            statusDiv.textContent = 'Requesting camera access...';
-            statusDiv.className = 'status-message status-info';
-            
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusDiv.textContent = 'Camera API not supported. Please use the test QR codes below.';
-                statusDiv.className = 'status-message status-error';
-                return;
-            }
-            
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 640 },
-                    height: { ideal: 480 }
-                } 
-            })
-            .then(function(stream) {
-                video.srcObject = stream;
-                collabScanner = stream;
-                collabScanning = true;
-                
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'inline-block';
-                document.getElementById('reset-collab-scan').style.display = 'inline-block';
-                
-                const scanText = firstGroup ? 'Scan second group...' : 'Scan first group...';
-                statusDiv.textContent = `Scanner active. ${scanText}`;
-                statusDiv.className = 'status-message status-success';
-                
-                video.addEventListener('loadeddata', function() {
-                    if (typeof jsQR !== 'undefined') {
-                        scanForCollabQR();
-                    }
-                }, { once: true });
-            })
-            .catch(function(error) {
-                console.error('Camera access error:', error);
-                statusDiv.textContent = 'Camera access error. You can still use the test QR codes below.';
-                statusDiv.className = 'status-message status-error';
-            });
-        }
-
-        function stopCollabScanner() {
-            const video = document.getElementById('collab-video');
-            const statusDiv = document.getElementById('collab-scan-status');
-            const startBtn = document.getElementById('start-collab-scan');
-            const stopBtn = document.getElementById('stop-collab-scan');
-            const resetBtn = document.getElementById('reset-collab-scan');
-            
-            if (collabScanner) {
-                collabScanner.getTracks().forEach(track => track.stop());
-                collabScanner = null;
-            }
-            
-            collabScanning = false;
-            video.srcObject = null;
-            
-            startBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-            resetBtn.style.display = 'none';
-            statusDiv.style.display = 'none';
-        }
-
-        function resetCollabScanner() {
-            firstGroup = null;
-            secondGroup = null;
-            document.getElementById('selected-groups').style.display = 'none';
-            document.getElementById('collaboration-results').style.display = 'none';
-            
-            const statusDiv = document.getElementById('collab-scan-status');
-            if (collabScanning) {
-                statusDiv.textContent = 'Scanner active. Scan first group...';
-                statusDiv.className = 'status-message status-success';
-            }
-        }
-
-        function scanForCollabQR() {
-            if (!collabScanning || typeof jsQR === 'undefined') return;
-            
-            const video = document.getElementById('collab-video');
-            
-            if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
-                requestAnimationFrame(scanForCollabQR);
-                return;
-            }
-            
-            try {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                
-                canvas.height = video.videoHeight;
-                canvas.width = video.videoWidth;
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                
-                if (code && code.data) {
-                    handleCollabQRCode(code.data);
-                    return;
-                }
-            } catch (error) {
-                console.error('QR scanning error:', error);
-            }
-            
-            requestAnimationFrame(scanForCollabQR);
-        }
-
-        function handleCollabQRCode(data) {
-            const groupId = parseInt(data) || Math.floor(Math.random() * 13) + 1;
-            
-            if (groupId >= 1 && groupId <= 13) {
-                simulateCollabQRScan(groupId);
-            }
-        }
-
-        function simulateCollabQRScan(groupId) {
-            const group = researchGroups.find(g => g.id === groupId);
-            if (!group) return;
-            
-            const statusDiv = document.getElementById('collab-scan-status');
-            
-            if (!firstGroup) {
-                firstGroup = group;
-                statusDiv.textContent = `First group selected: ${group.name}. Scan second group...`;
-                statusDiv.className = 'status-message status-info';
-                updateGroupDisplay();
-            } else if (!secondGroup && group.id !== firstGroup.id) {
-                secondGroup = group;
-                statusDiv.textContent = `Both groups selected! Analyzing collaboration potential...`;
-                statusDiv.className = 'status-message status-success';
-                updateGroupDisplay();
-                generateCollaborationAnalysis();
-            } else if (group.id === firstGroup.id) {
-                statusDiv.textContent = `Same group scanned. Please scan a different group...`;
-                statusDiv.className = 'status-message status-error';
-            }
-        }
-
-        function updateGroupDisplay() {
-            const container = document.getElementById('selected-groups');
-            const group1Display = document.getElementById('group1-display');
-            const group2Display = document.getElementById('group2-display');
-            
-            if (firstGroup) {
-                group1Display.innerHTML = `
-                    <h4>Group 1</h4>
-                    <strong>${firstGroup.name}</strong><br>
-                    <em>${firstGroup.focus}</em>
-                `;
-                container.style.display = 'block';
-            }
-            
-            if (secondGroup) {
-                group2Display.innerHTML = `
-                    <h4>Group 2</h4>
-                    <strong>${secondGroup.name}</strong><br>
-                    <em>${secondGroup.focus}</em>
-                `;
-            } else {
-                group2Display.innerHTML = `
-                    <h4>Group 2</h4>
-                    <em>Scan second QR code...</em>
-                `;
-            }
-        }
-
-        function generateCollaborationAnalysis() {
-            if (!firstGroup || !secondGroup) return;
-            
-            const compatibility = calculateCompatibility(firstGroup, secondGroup);
-            const collaborationIdeas = generateCollaborationIdeas(firstGroup, secondGroup);
-            
-            const container = document.getElementById('collaboration-results');
-            
-            let compatibilityClass = 'score-low';
-            let compatibilityText = 'Limited';
-            if (compatibility >= 70) {
-                compatibilityClass = 'score-high';
-                compatibilityText = 'High';
-            } else if (compatibility >= 40) {
-                compatibilityClass = 'score-medium';
-                compatibilityText = 'Moderate';
-            }
-            
-            container.innerHTML = `
-                <div class="flashcard-display">
-                    <div class="flashcard-title">Collaboration Analysis</div>
-                    <div style="text-align: center; margin: 20px 0;">
-                        <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
-                            <span class="${compatibilityClass}" style="padding: 10px 20px; border-radius: 25px; display: inline-block;">
-                                ${compatibility}% Compatibility
-                            </span>
-                        </div>
-                        <div style="font-size: 1.1rem; color: #667eea; font-weight: 600;">
-                            ${compatibilityText} Collaboration Potential
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 30px;">
-                        <h3 style="color: #2d3436; margin-bottom: 20px; text-align: center;">Collaboration Opportunities</h3>
-                        ${collaborationIdeas.map((idea, index) => `
-                            <div style="margin-bottom: 20px; padding: 15px; background: rgba(102, 126, 234, 0.05); border-radius: 10px; border-left: 4px solid #667eea;">
-                                <h4 style="color: #667eea; margin-bottom: 10px;">${index + 1}. ${idea.title}</h4>
-                                <p style="line-height: 1.6; color: #2d3436;">${idea.description}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function generateCollaborationIdeas(group1, group2) {
-            const ideas = [];
-            
-            // Find common keywords for joint research
-            const commonKeywords = group1.keywords.filter(k1 => 
-                group2.keywords.some(k2 => 
-                    k1.toLowerCase().includes(k2.toLowerCase()) || 
-                    k2.toLowerCase().includes(k1.toLowerCase())
-                )
-            );
-            
-            if (commonKeywords.length > 0) {
-                ideas.push({
-                    title: "Joint Research Initiative",
-                    description: `Leverage shared expertise in ${commonKeywords.slice(0, 2).join(' and ')} to develop innovative approaches combining ${group1.focus.toLowerCase()} with ${group2.focus.toLowerCase()}.`
-                });
-            }
-            
-            // Domain-specific collaboration suggestions
-            if (group1.domain !== group2.domain) {
-                const synergies = {
-                    'computational-biotechnology': 'Apply computational modeling to optimize biotechnological processes',
-                    'computational-therapy': 'Use data science to enhance therapeutic development and personalized medicine',
-                    'computational-chemistry': 'Integrate molecular modeling with chemical synthesis for drug discovery',
-                    'biotechnology-therapy': 'Develop biotechnology-based therapeutic delivery systems',
-                    'microbiology-chemistry': 'Create antimicrobial compounds using medicinal chemistry approaches',
-                    'genomics-proteomics': 'Combine genomic and proteomic data for comprehensive biomarker discovery',
-                    'therapy-immunology': 'Develop immunotherapy approaches for targeted disease treatment',
-                    'oncology-therapy': 'Create specialized cancer therapeutics using advanced delivery methods'
-                };
-                
-                const pairKey = [group1.domain, group2.domain].sort().join('-');
-                if (synergies[pairKey]) {
-                    ideas.push({
-                        title: "Cross-Domain Collaboration",
-                        description: synergies[pairKey] + `, combining ${group1.name}'s strengths with ${group2.name}'s capabilities.`
-                    });
-                }
-            }
-            
-            // Technology transfer opportunities
-            ideas.push({
-                title: "Technology Transfer & Innovation",
-                description: `Explore technology transfer opportunities where ${group1.name}'s methodologies could enhance ${group2.name}'s research pipeline, potentially leading to novel therapeutic applications or diagnostic tools.`
-            });
-            
-            // Ensure we return exactly 3 ideas
-            return ideas.slice(0, 3);
-        }
-
-        function startQRScanner() {
-            const video = document.getElementById('qr-video');
-            const statusDiv = document.getElementById('scan-status');
-            const startBtn = document.getElementById('start-scan');
-            const stopBtn = document.getElementById('stop-scan');
-            
-            statusDiv.style.display = 'block';
-            statusDiv.textContent = 'Requesting camera access...';
-            statusDiv.className = 'status-message status-info';
-            
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusDiv.textContent = 'Camera API not supported in this browser. Please use the test QR codes below.';
-                statusDiv.className = 'status-message status-error';
-                return;
-            }
-            
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 640 },
-                    height: { ideal: 480 }
-                } 
-            })
-            .then(function(stream) {
-                video.srcObject = stream;
-                qrScanner = stream;
-                scanning = true;
-                
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'inline-block';
-                
-                statusDiv.textContent = 'Scanner active. Point camera at QR code or use test codes below...';
-                statusDiv.className = 'status-message status-success';
-                
-                video.addEventListener('loadeddata', function() {
-                    if (typeof jsQR !== 'undefined') {
-                        scanForQR();
-                    }
-                }, { once: true });
-            })
-            .catch(function(error) {
-                console.error('Camera access error:', error);
-                let errorMessage = 'Camera access error: ';
-                if (error.name === 'NotAllowedError') {
-                    errorMessage += 'Permission denied. Please allow camera access.';
-                } else if (error.name === 'NotFoundError') {
-                    errorMessage += 'No camera found on this device.';
-                } else if (error.name === 'NotSupportedError') {
-                    errorMessage += 'Camera not supported in this browser.';
-                } else {
-                    errorMessage += error.message;
-                }
-                statusDiv.textContent = errorMessage + ' You can still use the test QR codes below.';
-                statusDiv.className = 'status-message status-error';
-            });
-        }
-
-        function stopQRScanner() {
-            const video = document.getElementById('qr-video');
-            const statusDiv = document.getElementById('scan-status');
-            const startBtn = document.getElementById('start-scan');
-            const stopBtn = document.getElementById('stop-scan');
-            
-            if (qrScanner) {
-                qrScanner.getTracks().forEach(track => track.stop());
-                qrScanner = null;
-            }
-            
-            scanning = false;
-            video.srcObject = null;
-            
-            startBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-            statusDiv.style.display = 'none';
-            
-            document.getElementById('flashcard-container').style.display = 'none';
-        }
-
-        function scanForQR() {
-            if (!scanning || typeof jsQR === 'undefined') return;
-            
-            const video = document.getElementById('qr-video');
-            
-            if (video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
-                requestAnimationFrame(scanForQR);
-                return;
-            }
-            
-            try {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                
-                canvas.height = video.videoHeight;
-                canvas.width = video.videoWidth;
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                
-                if (code && code.data) {
-                    handleQRCode(code.data);
-                    return;
-                }
-            } catch (error) {
-                console.error('QR scanning error:', error);
-            }
-            
-            requestAnimationFrame(scanForQR);
-        }
-
-        function handleQRCode(data) {
-            const statusDiv = document.getElementById('scan-status');
-            const groupId = parseInt(data) || Math.floor(Math.random() * 13) + 1;
-            
-            if (groupId >= 1 && groupId <= 13) {
-                statusDiv.textContent = `QR Code detected! Displaying group ${groupId}...`;
-                statusDiv.className = 'status-message status-success';
-                
-                const group = researchGroups.find(g => g.id === groupId);
-                if (group) {
-                    displayFlashcard(group);
-                }
-            } else {
-                statusDiv.textContent = 'Invalid QR code. Please scan a research group QR code (1-13).';
-                statusDiv.className = 'status-message status-error';
-            }
-        }
-
-        function simulateQRScan(groupId) {
-            const group = researchGroups.find(g => g.id === groupId);
-            if (group) {
-                const statusDiv = document.getElementById('scan-status');
-                statusDiv.style.display = 'block';
-                statusDiv.textContent = `Loading ${group.name}...`;
-                statusDiv.className = 'status-message status-success';
-                
-                // Small delay to show the loading message
-                setTimeout(() => {
-                    displayFlashcard(group);
-                    statusDiv.textContent = `Displaying: ${group.name}`;
-                }, 300);
-            }
-        }
-
-        function displayFlashcard(group) {
-            const container = document.getElementById('flashcard-container');
-            
-            const keywordTags = group.keywords.map(keyword => 
-                `<span class="keyword-tag">${keyword}</span>`
-            ).join('');
-            
-            container.innerHTML = `
-                <div class="flashcard-display">
-                    <div class="flashcard-title">${group.name}</div>
-                    <div class="flashcard-focus">${group.focus}</div>
-                    <div class="flashcard-description">${group.description}</div>
-                    <div class="flashcard-keywords">
-                        <strong>Research Areas:</strong><br>
-                        ${keywordTags}
-                    </div>
-                </div>
-            `;
-            
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        // Event listeners
-        document.getElementById('start-scan').addEventListener('click', startQRScanner);
-        document.getElementById('stop-scan').addEventListener('click', stopQRScanner);
-        document.getElementById('start-collab-scan').addEventListener('click', startCollabScanner);
-        document.getElementById('stop-collab-scan').addEventListener('click', stopCollabScanner);
-        document.getElementById('reset-collab-scan').addEventListener('click', resetCollabScanner);
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const groupId = urlParams.get('group');
-            
-            if (groupId && groupId >= 1 && groupId <= 13) {
-                const group = researchGroups.find(g => g.id == groupId);
-                if (group) {
-                    showSection('qr-scanner');
-                    setTimeout(() => {
-                        displayFlashcard(group);
-                        const statusDiv = document.getElementById('scan-status');
-                        if (statusDiv) {
-                            statusDiv.style.display = 'block';
-                            statusDiv.textContent = `QR Code scanned successfully! Displaying Group ${groupId}...`;
-                            statusDiv.className = 'status-message status-success';
-                        }
-                    }, 500);
-                } else {
-                    showSection('qr-scanner');
-                }
-            } else {
-                showSection('qr-scanner');
-            }
-        });
-
-        // Handle page unload
-        window.addEventListener('beforeunload', function() {
-            if (qrScanner) {
-                qrScanner.getTracks().forEach(track => track.stop());
-            }
-            if (collabScanner) {
-                collabScanner.getTracks().forEach(track => track.stop());
-            }
-        });
-    </script>
-</body>
-</html>
+                description: "
