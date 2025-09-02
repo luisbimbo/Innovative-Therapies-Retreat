@@ -1294,14 +1294,42 @@
             ctx.fillText(groupId.toString(), 55, 60);
         }
 
-        function generateCollabQRCodes() {
-            const container = document.getElementById('collab-qr-codes-grid');
-            container.innerHTML = '';
-            
-            researchGroups.forEach(group => {
-                const qrItem = document.createElement('div');
-                qrItem.className = 'qr-code-item';
+                qrContainer.style.margin = '0 auto 10px';
+                qrContainer.style.display = 'flex';
+                qrContainer.style.alignItems = 'center';
+                qrContainer.style.justifyContent = 'center';
+                qrContainer.style.border = '2px solid #ddd';
+                qrContainer.style.borderRadius = '8px';
+                qrContainer.style.backgroundColor = 'white';
                 
-                const qrContainer = document.createElement('div');
-                qrContainer.style.width = '120px';
-                qrContainer.style.height = '120px';
+                const baseUrl = window.location.origin + window.location.pathname;
+                const qrData = `${baseUrl}?group=${group.id}`;
+                const qrImg = document.createElement('img');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff&margin=5`;
+                qrImg.alt = `QR Code for Group ${group.id}`;
+                qrImg.style.width = '110px';
+                qrImg.style.height = '110px';
+                qrImg.style.display = 'block';
+                
+                qrImg.onload = function() {
+                    qrContainer.appendChild(qrImg);
+                };
+                
+                qrImg.onerror = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 110;
+                    canvas.height = 110;
+                    generatePlaceholderQR(canvas, group.id);
+                    qrContainer.appendChild(canvas);
+                };
+                
+                const label = document.createElement('div');
+                label.className = 'qr-code-label';
+                label.textContent = group.name;
+                
+                qrItem.appendChild(qrContainer);
+                qrItem.appendChild(label);
+                qrItem.onclick = () => simulateCollabQRScan(group.id);
+                container.appendChild(qrItem);
+            });
+        }
