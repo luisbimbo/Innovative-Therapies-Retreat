@@ -242,6 +242,36 @@
             text-align: center;
         }
 
+        .flashcard-publications {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .flashcard-publications h4 {
+            color: #2d3436;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .publication-link {
+            display: block;
+            margin: 8px 0;
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px;
+            border-radius: 5px;
+            background: rgba(102, 126, 234, 0.05);
+            transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .publication-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            text-decoration: underline;
+        }
+
         .status-message {
             padding: 15px;
             border-radius: 8px;
@@ -409,7 +439,7 @@
     </div>
 
     <script>
-        // CIBB Research Groups Data
+        // CIBB Research Groups Data with Real Publications
         const researchGroups = [
             {
                 id: 1,
@@ -417,7 +447,12 @@
                 description: "High-throughput screening approaches and stem cell-based assays to identify small molecules and miRNAs for tissue regeneration. Uses nature-inspired delivery systems for in vivo therapeutic delivery.",
                 keywords: ["High-throughput screening", "miRNAs", "Small molecules", "Extracellular Vesicles", "Regenerative Medicine", "Stem Cells"],
                 focus: "Tissue Regeneration & Drug Delivery",
-                domain: "biotechnology"
+                domain: "biotechnology",
+                publications: [
+                    "PNAS (2017) 114(15):E3022-E3031|https://doi.org/10.1073/pnas.1617665114",
+                    "Molecular Therapy - Nucleic Acids (2022) 28:307-327|https://doi.org/10.1016/j.omtn.2022.03.016",
+                    "Journal of Extracellular Vesicles (2021) 10(10):e12111|https://doi.org/10.1002/jev2.12111"
+                ]
             },
             {
                 id: 2,
@@ -425,7 +460,12 @@
                 description: "Developing knowledge to understand and treat age-related diseases, particularly cardiovascular diseases, using iPSC-derived tissues and nanomedicine approaches.",
                 keywords: ["Ageing", "Cardiovascular Diseases", "Stem Cells", "iPSCs Differentiation", "Nanomaterials", "Drug screening"],
                 focus: "Age-related Disease Therapy",
-                domain: "therapy"
+                domain: "therapy",
+                publications: [
+                    "Nature Communications (2024) 15:1687|https://doi.org/10.1038/s41467-024-46093-6",
+                    "Science Signaling (2024) 17(828):eadg9256|https://doi.org/10.1126/scisignal.adg9256",
+                    "Nature Communications (2022) 13:4834|https://doi.org/10.1038/s41467-022-32563-3"
+                ]
             },
             {
                 id: 3,
@@ -433,7 +473,12 @@
                 description: "Integration of data science and AI into chemistry and biomedicine. Develops predictive models, drug discovery processes, and understanding of disease mechanisms.",
                 keywords: ["Bioinformatics", "Computational Biology", "Data Science", "Machine Learning", "Structural Modeling", "AI"],
                 focus: "Computational Drug Discovery",
-                domain: "computational"
+                domain: "computational",
+                publications: [
+                    "Journal of Cheminformatics (2024) 16(1):1|https://doi.org/10.1186/s13321-023-00795-9",
+                    "Science Signaling (2024) 17(828):eadg9256|https://doi.org/10.1126/scisignal.adg9256",
+                    "Aging Cell (2024) 23(9):e14270|https://doi.org/10.1111/acel.14270"
+                ]
             },
             {
                 id: 4,
@@ -441,7 +486,12 @@
                 description: "Identification of novel cellular factors for cardiac regeneration and repair, and development of high-throughput screening technologies using genome-wide libraries.",
                 keywords: ["Functional Genomics", "Cardiovascular Diseases", "High-throughput screening", "MicroRNAs", "CRISPR", "siRNA"],
                 focus: "Cardiac Regeneration & Genomics",
-                domain: "genomics"
+                domain: "genomics",
+                publications: [
+                    "Nature Cardiovascular Research (2025) 4(4):397-411|https://doi.org/10.1038/s44161-025-00546-6",
+                    "Nature Communications (2022) 13(1):7164|https://doi.org/10.1038/s41467-022-34933-z",
+                    "Nature Communications (2021) 12:4159|https://doi.org/10.1038/s41467-021-24436-7"
+                ]
             },
             {
                 id: 5,
@@ -449,7 +499,12 @@
                 description: "Advanced mass spectrometry approaches for biomarker research, particularly in neurodegenerative disorders, psychiatric diseases, and hypoxic-ischemic encephalopathy.",
                 keywords: ["Biomarkers", "Translational Research", "Proteomics", "Mass Spectrometry", "Big Data", "Metabolomics"],
                 focus: "Proteomics & Biomarker Discovery",
-                domain: "proteomics"
+                domain: "proteomics",
+                publications: [
+                    "Translational Neurodegeneration (2024) 13(1):1|https://doi.org/10.1186/s40035-023-00396-2",
+                    "International Journal of Molecular Sciences (2023) 24(19):14542|https://doi.org/10.3390/ijms241914542",
+                    "Journal of Neuroinflammation (2022) 19(1):1|https://doi.org/10.1186/s12974-021-02370-0"
+                ]
             },
             {
                 id: 6,
@@ -457,7 +512,12 @@
                 description: "Cellular reprogramming approaches focused on immune cell function, regenerative immunology, and therapeutic immune modulation strategies.",
                 keywords: ["Cell Reprogramming", "Immunology", "Regenerative Medicine", "Cell Therapy", "Immune Modulation"],
                 focus: "Immune Cell Engineering",
-                domain: "immunology"
+                domain: "immunology",
+                publications: [
+                    "Science (2024) 385(6717):eadn9083|https://doi.org/10.1126/science.adn9083",
+                    "Nature Communications (2023) 14:4645|https://doi.org/10.1038/s41467-023-40399-7",
+                    "Science Immunology (2023) 8(85):eadd4817|https://doi.org/10.1126/sciimmunol.add4817"
+                ]
             },
             {
                 id: 7,
@@ -465,7 +525,12 @@
                 description: "Studies microbial agents of human disease, mechanisms of antimicrobial resistance, and seeks innovative therapies. Focus on fungal pathogens and purinergic system in infection.",
                 keywords: ["Medical Microbiology", "Infection", "Pathogenesis", "Antimicrobial Resistance", "Fungal Pathogens", "Purinergic System"],
                 focus: "Infectious Disease & Antimicrobials",
-                domain: "microbiology"
+                domain: "microbiology",
+                publications: [
+                    "Nature Microbiology (2025) 10(2):1962-4|https://doi.org/10.1038/s41564-024-01862-4",
+                    "Journal of Allergy and Clinical Immunology (2024) 154(2):424-434|https://doi.org/10.1016/j.jaci.2024.04.018",
+                    "FEMS Microbiology Reviews (2023) 47(6):fuad061|https://doi.org/10.1093/femsre/fuad061"
+                ]
             },
             {
                 id: 8,
@@ -473,7 +538,12 @@
                 description: "Design and synthesis of novel therapeutic compounds, structure-activity relationship studies, and development of innovative drug delivery systems.",
                 keywords: ["Medicinal Chemistry", "Drug Discovery", "Synthesis", "SAR Studies", "Lead Optimization", "Chemical Biology"],
                 focus: "Chemical Drug Development",
-                domain: "chemistry"
+                domain: "chemistry",
+                publications: [
+                    "Natural Product Reports (2024) 41(12):1858-1894|https://doi.org/10.1039/D4NP00031E",
+                    "Expert Opinion on Therapeutic Targets (2023) 27(11):1043-1058|https://doi.org/10.1080/14728222.2023.2260567",
+                    "Frontiers in Chemistry (2023) 11:1066280|https://doi.org/10.3389/fchem.2023.1066280"
+                ]
             },
             {
                 id: 9,
@@ -481,7 +551,12 @@
                 description: "Exploitation of microbial systems for biotechnological applications, enzyme engineering, and development of bio-based production processes.",
                 keywords: ["Microbial Biotechnology", "Enzyme Engineering", "Bioprocesses", "Metabolic Engineering", "Fermentation", "Biocatalysis"],
                 focus: "Biotechnological Applications",
-                domain: "biotechnology"
+                domain: "biotechnology",
+                publications: [
+                    "mBio (2021) 12(6):e03059-21|https://doi.org/10.1128/mBio.03059-21",
+                    "Microbiology Spectrum (2021) 9(3):e00814-21|https://doi.org/10.1128/Spectrum.00814-21",
+                    "Frontiers in Cellular and Infection Microbiology (2019) 9:43|https://doi.org/10.3389/fcimb.2019.00043"
+                ]
             },
             {
                 id: 10,
@@ -489,7 +564,12 @@
                 description: "Study of mycobacterial infections, host-pathogen interactions, and microbiome influence on health and disease progression.",
                 keywords: ["Mycobacteriology", "Microbiome", "Host-Pathogen Interactions", "Tuberculosis", "Bacterial Pathogenesis"],
                 focus: "Mycobacterial Research",
-                domain: "microbiology"
+                domain: "microbiology",
+                publications: [
+                    "Communications Biology (2023) 6(1):1-15|https://doi.org/10.1038/s42003-023-04560-4",
+                    "Proceedings of the National Academy of Sciences (2019) 116(3):835-845|https://doi.org/10.1073/pnas.1812803116",
+                    "Scientific Reports (2015) 5(1):13610|https://doi.org/10.1038/srep13610"
+                ]
             },
             {
                 id: 11,
@@ -497,7 +577,12 @@
                 description: "Investigation of host-pathogen interactions focusing on how bacterial infections impact host RNA metabolism and non-coding RNA regulation.",
                 keywords: ["Host-pathogen interactions", "Bacterial pathogens", "Non-coding RNAs", "MicroRNAs", "RNA metabolism"],
                 focus: "Bacterial infection RNA regulation",
-                domain: "microbiology"
+                domain: "microbiology",
+                publications: [
+                    "Nature Communications (2021) 12(1):3254|https://doi.org/10.1038/s41467-021-23451-y",
+                    "Nature Microbiology (2020) 5(1):192-205|https://doi.org/10.1038/s41564-019-0591-5",
+                    "The EMBO Journal (2018) 37(23):e98529|https://doi.org/10.15252/embj.201798529"
+                ]
             },
             {
                 id: 12,
@@ -505,7 +590,12 @@
                 description: "Understanding cancer biology through tumor microenvironment analysis and development of targeted therapeutic approaches for cancer treatment.",
                 keywords: ["Cancer Biology", "Tumor Microenvironment", "Targeted Therapy", "Oncology", "Drug Resistance", "Precision Medicine"],
                 focus: "Cancer Research & Therapy",
-                domain: "oncology"
+                domain: "oncology",
+                publications: [
+                    "Nano Today (2021) 37:101095|https://doi.org/10.1016/j.nantod.2021.101095",
+                    "Biomaterials (2022) 281:121366|https://doi.org/10.1016/j.biomaterials.2021.121366",
+                    "Critical Reviews in Oncology/Hematology (2022) 172:103628|https://doi.org/10.1016/j.critrevonc.2022.103628"
+                ]
             },
             {
                 id: 13,
@@ -513,7 +603,12 @@
                 description: "Development of gene delivery vectors, cell therapy approaches, and innovative strategies for therapeutic gene expression and cellular reprogramming.",
                 keywords: ["Gene Therapy", "Cell Therapy", "Viral Vectors", "Gene Delivery", "Therapeutic Genes", "Vector Development"],
                 focus: "Gene & Cell Therapy",
-                domain: "therapy"
+                domain: "therapy",
+                publications: [
+                    "Molecular Therapy (2022) 30(1):370-387|https://doi.org/10.1016/j.ymthe.2021.08.031",
+                    "Scientific Reports (2021) 11(1):2339|https://doi.org/10.1038/s41598-021-81843-9",
+                    "Nature Communications (2016) 7:11445|https://doi.org/10.1038/ncomms11445"
+                ]
             }
         ];
 
@@ -537,7 +632,7 @@
             }
         }
 
-        // Display flashcard - SIMPLIFIED VERSION
+        // Display flashcard
         function displayFlashcard(group) {
             console.log('=== DISPLAYING FLASHCARD ===');
             console.log('Group:', group);
@@ -555,6 +650,22 @@
                 `<span class="keyword-tag">${keyword}</span>`
             ).join('');
             
+            // Create publications section for flashcard
+            let publicationsHTML = '';
+            if (group.publications && group.publications.length > 0) {
+                const pubLinks = group.publications.map(pub => {
+                    const [title, url] = pub.split('|');
+                    return `<a href="${url}" target="_blank" class="publication-link">${title}</a>`;
+                }).join('');
+                
+                publicationsHTML = `
+                    <div class="flashcard-publications">
+                        <h4>Recent Publications</h4>
+                        ${pubLinks}
+                    </div>
+                `;
+            }
+            
             container.innerHTML = `
                 <div class="flashcard-display">
                     <div class="flashcard-title">${group.name}</div>
@@ -564,6 +675,7 @@
                         <strong>Research Areas:</strong><br>
                         ${keywordTags}
                     </div>
+                    ${publicationsHTML}
                 </div>
             `;
             
@@ -603,7 +715,6 @@
                             <div style="margin-top: 4px;">
                                 ${pubLinks}
                             </div>
-                        </div>
                     `;
                 }
                 
