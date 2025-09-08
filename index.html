@@ -74,21 +74,6 @@
             box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
         }
 
-        .btn-tertiary {
-            background: linear-gradient(45deg, #ffeaa7, #fdcb6e);
-            color: #2d3436;
-            box-shadow: 0 4px 15px rgba(255, 234, 167, 0.4);
-        }
-
-        .btn-collab {
-            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
-            color: white;
-            box-shadow: 0 4px 15px rgba(162, 155, 254, 0.4);
-            font-size: 0.9rem;
-            padding: 10px 20px;
-            margin: 10px 5px;
-        }
-
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
@@ -124,8 +109,6 @@
             position: relative;
             overflow: hidden;
             min-height: 200px;
-            max-height: 350px;
-            overflow-y: auto;
         }
 
         .group-card:hover {
@@ -259,59 +242,6 @@
             text-align: center;
         }
 
-        .collaboration-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 15px;
-            border: 2px dashed #667eea;
-        }
-
-        .group-selection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .group-selection-item {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .group-selection-item:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-
-        .group-selection-item.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .group-selection-item h4 {
-            color: #2d3436;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            line-height: 1.2;
-        }
-
-        .group-selection-item p {
-            color: #667eea;
-            font-size: 0.8rem;
-            font-style: italic;
-        }
-
-        .score-high { background-color: #d4edda; color: #155724; }
-        .score-medium { background-color: #fff3cd; color: #856404; }
-        .score-low { background-color: #f8d7da; color: #721c24; }
-
         .status-message {
             padding: 15px;
             border-radius: 8px;
@@ -415,41 +345,10 @@
                 transform: translateY(-5px);
             }
             
-            .group-selection-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .collaboration-section {
-                padding: 15px;
-                margin-top: 20px;
-            }
-            
             .qr-codes-grid {
                 grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
                 gap: 15px;
             }
-        }
-
-        .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .back-button:hover {
-            background: white;
-            transform: scale(1.1);
         }
     </style>
 </head>
@@ -468,7 +367,7 @@
         <!-- QR Scanner Section -->
         <div id="qr-scanner" class="section">
             <h2>QR Code Scanner</h2>
-            <p>Scan QR codes to display research group information and explore collaborations</p>
+            <p>Scan QR codes to display research group information</p>
             
             <div class="qr-scanner">
                 <div class="camera-container">
@@ -618,22 +517,19 @@
             }
         ];
 
-        // QR Scanner functionality
+        // Global variables
         let qrScanner = null;
         let scanning = false;
-        let currentGroup = null;
 
+        // Show/hide sections
         function showSection(sectionId) {
-            // Hide all sections
             const sections = ['qr-scanner', 'groups-browser'];
             sections.forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             
-            // Show selected section
             document.getElementById(sectionId).classList.remove('hidden');
             
-            // Initialize section-specific functionality
             if (sectionId === 'groups-browser') {
                 populateGroupsGrid();
             } else if (sectionId === 'qr-scanner') {
@@ -641,6 +537,46 @@
             }
         }
 
+        // Display flashcard - SIMPLIFIED VERSION
+        function displayFlashcard(group) {
+            console.log('=== DISPLAYING FLASHCARD ===');
+            console.log('Group:', group);
+            
+            const container = document.getElementById('flashcard-container');
+            if (!container) {
+                console.error('ERROR: flashcard-container not found');
+                alert('Error: flashcard container not found');
+                return;
+            }
+            
+            console.log('Container found, creating content...');
+            
+            const keywordTags = group.keywords.map(keyword => 
+                `<span class="keyword-tag">${keyword}</span>`
+            ).join('');
+            
+            container.innerHTML = `
+                <div class="flashcard-display">
+                    <div class="flashcard-title">${group.name}</div>
+                    <div class="flashcard-focus">${group.focus}</div>
+                    <div class="flashcard-description">${group.description}</div>
+                    <div class="flashcard-keywords">
+                        <strong>Research Areas:</strong><br>
+                        ${keywordTags}
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+            console.log('Flashcard should now be visible');
+            
+            // Force scroll to flashcard
+            setTimeout(() => {
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        // Populate groups grid
         function populateGroupsGrid() {
             const container = document.getElementById('groups-container');
             container.innerHTML = '';
@@ -659,122 +595,17 @@
                     <p>${group.description}</p>
                     <div class="group-keywords">${keywordTags}</div>
                 `;
-                card.onclick = () => displayFlashcard(group);
+                
+                card.onclick = () => {
+                    console.log('Group card clicked:', group.name);
+                    displayFlashcard(group);
+                };
+                
                 container.appendChild(card);
             });
         }
 
-        function calculateCompatibility(groupA, groupB) {
-            if (groupA.id === groupB.id) return 100;
-            
-            // Domain compatibility scoring
-            let domainScore = 0;
-            if (groupA.domain === groupB.domain) {
-                domainScore = 30;
-            } else {
-                // Cross-domain synergies
-                const synergies = {
-                    'computational-biotechnology': 25,
-                    'computational-chemistry': 25,
-                    'computational-proteomics': 25,
-                    'computational-genomics': 25,
-                    'biotechnology-therapy': 20,
-                    'microbiology-chemistry': 20,
-                    'genomics-proteomics': 25,
-                    'therapy-immunology': 25,
-                    'oncology-therapy': 25,
-                    'chemistry-biotechnology': 20
-                };
-                
-                const pairKey = [groupA.domain, groupB.domain].sort().join('-');
-                domainScore = synergies[pairKey] || 10;
-            }
-            
-            // Keyword overlap scoring
-            const keywordOverlap = groupA.keywords.filter(keyword => 
-                groupB.keywords.some(bKeyword => 
-                    keyword.toLowerCase().includes(bKeyword.toLowerCase()) ||
-                    bKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
-                    Math.abs(keyword.length - bKeyword.length) <= 3 && 
-                    keyword.toLowerCase().substring(0,4) === bKeyword.toLowerCase().substring(0,4)
-                )
-            ).length;
-            
-            const maxKeywords = Math.max(groupA.keywords.length, groupB.keywords.length);
-            const keywordScore = (keywordOverlap / maxKeywords) * 40;
-            
-            // Research focus synergy scoring
-            const focusSynergies = {
-                'regenerative': ['tissue', 'cell therapy', 'stem', 'cardiac'],
-                'computational': ['data', 'modeling', 'bioinformatics', 'discovery'],
-                'therapeutic': ['drug', 'therapy', 'treatment', 'medicine'],
-                'disease': ['cancer', 'infectious', 'pathogen', 'biomarker']
-            };
-            
-            let focusScore = 0;
-            for (const [category, terms] of Object.entries(focusSynergies)) {
-                const aMatches = terms.some(term => groupA.focus.toLowerCase().includes(term));
-                const bMatches = terms.some(term => groupB.focus.toLowerCase().includes(term));
-                if (aMatches && bMatches) {
-                    focusScore = 30;
-                    break;
-                }
-            }
-            
-            const totalScore = Math.min(100, Math.round(domainScore + keywordScore + focusScore));
-            return totalScore;
-        }
-
-        function generateCollaborationIdeas(group1, group2) {
-            const ideas = [];
-            
-            // Find common keywords for joint research
-            const commonKeywords = group1.keywords.filter(k1 => 
-                group2.keywords.some(k2 => 
-                    k1.toLowerCase().includes(k2.toLowerCase()) || 
-                    k2.toLowerCase().includes(k1.toLowerCase())
-                )
-            );
-            
-            if (commonKeywords.length > 0) {
-                ideas.push({
-                    title: "Joint Research Initiative",
-                    description: `Leverage shared expertise in ${commonKeywords.slice(0, 2).join(' and ')} to develop innovative approaches combining ${group1.focus.toLowerCase()} with ${group2.focus.toLowerCase()}.`
-                });
-            }
-            
-            // Domain-specific collaboration suggestions
-            if (group1.domain !== group2.domain) {
-                const synergies = {
-                    'computational-biotechnology': 'Apply computational modeling to optimize biotechnological processes',
-                    'computational-therapy': 'Use data science to enhance therapeutic development and personalized medicine',
-                    'computational-chemistry': 'Integrate molecular modeling with chemical synthesis for drug discovery',
-                    'biotechnology-therapy': 'Develop biotechnology-based therapeutic delivery systems',
-                    'microbiology-chemistry': 'Create antimicrobial compounds using medicinal chemistry approaches',
-                    'genomics-proteomics': 'Combine genomic and proteomic data for comprehensive biomarker discovery',
-                    'therapy-immunology': 'Develop immunotherapy approaches for targeted disease treatment',
-                    'oncology-therapy': 'Create specialized cancer therapeutics using advanced delivery methods'
-                };
-                
-                const pairKey = [group1.domain, group2.domain].sort().join('-');
-                if (synergies[pairKey]) {
-                    ideas.push({
-                        title: "Cross-Domain Collaboration",
-                        description: synergies[pairKey] + `, combining ${group1.name}'s strengths with ${group2.name}'s capabilities.`
-                    });
-                }
-            }
-            
-            // Technology transfer opportunities
-            ideas.push({
-                title: "Technology Transfer & Innovation",
-                description: `Explore technology transfer opportunities where ${group1.name}'s methodologies could enhance ${group2.name}'s research pipeline, potentially leading to novel therapeutic applications or diagnostic tools.`
-            });
-            
-            // Ensure we return exactly 3 ideas
-            return ideas.slice(0, 3);
-        }
-
+        // Generate QR codes
         function generateQRCodes() {
             const container = document.getElementById('qr-codes-grid');
             container.innerHTML = '';
@@ -794,7 +625,6 @@
                 qrContainer.style.borderRadius = '8px';
                 qrContainer.style.backgroundColor = 'white';
                 
-                // Create QR code with proper website URL - this ensures functional linking
                 const baseUrl = window.location.origin + window.location.pathname;
                 const qrData = `${baseUrl}?group=${group.id}`;
                 const qrImg = document.createElement('img');
@@ -809,11 +639,7 @@
                 };
                 
                 qrImg.onerror = function() {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 110;
-                    canvas.height = 110;
-                    generatePlaceholderQR(canvas, group.id);
-                    qrContainer.appendChild(canvas);
+                    qrContainer.innerHTML = `<div style="padding: 20px; text-align: center;">QR ${group.id}</div>`;
                 };
                 
                 const label = document.createElement('div');
@@ -822,56 +648,37 @@
                 
                 qrItem.appendChild(qrContainer);
                 qrItem.appendChild(label);
-                qrItem.onclick = () => simulateQRScan(group.id);
+                qrItem.onclick = () => {
+                    console.log('QR code clicked for group:', group.id);
+                    simulateQRScan(group.id);
+                };
+                
                 container.appendChild(qrItem);
             });
         }
 
-        function generatePlaceholderQR(canvas, groupId) {
-            const ctx = canvas.getContext('2d');
+        // Simulate QR scan
+        function simulateQRScan(groupId) {
+            console.log('=== SIMULATING QR SCAN ===');
+            console.log('Group ID:', groupId);
             
-            // White background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, 110, 110);
-            
-            // Black border
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(5, 5, 100, 100);
-            
-            // Create a simple QR-like pattern
-            ctx.fillStyle = 'black';
-            
-            // Corner squares (QR code finder patterns)
-            const drawFinderPattern = (x, y) => {
-                ctx.fillRect(x, y, 21, 21);
-                ctx.fillStyle = 'white';
-                ctx.fillRect(x + 3, y + 3, 15, 15);
-                ctx.fillStyle = 'black';
-                ctx.fillRect(x + 6, y + 6, 9, 9);
-            };
-            
-            drawFinderPattern(10, 10); // Top-left
-            drawFinderPattern(79, 10); // Top-right
-            drawFinderPattern(10, 79); // Bottom-left
-            
-            // Add some random-looking data pattern
-            ctx.fillStyle = 'black';
-            for (let i = 0; i < 8; i++) {
-                for (let j = 0; j < 8; j++) {
-                    if ((i + j + groupId) % 3 === 0) {
-                        ctx.fillRect(40 + i * 3, 40 + j * 3, 3, 3);
-                    }
+            const group = researchGroups.find(g => g.id === groupId);
+            if (group) {
+                const statusDiv = document.getElementById('scan-status');
+                if (statusDiv) {
+                    statusDiv.style.display = 'block';
+                    statusDiv.textContent = `Loading ${group.name}...`;
+                    statusDiv.className = 'status-message status-success';
                 }
+                
+                console.log('Found group, calling displayFlashcard...');
+                displayFlashcard(group);
+            } else {
+                console.error('Group not found for ID:', groupId);
             }
-            
-            // Group ID in center
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(groupId.toString(), 55, 60);
         }
 
+        // QR Scanner functions
         function startQRScanner() {
             const video = document.getElementById('qr-video');
             const statusDiv = document.getElementById('scan-status');
@@ -914,17 +721,7 @@
             })
             .catch(function(error) {
                 console.error('Camera access error:', error);
-                let errorMessage = 'Camera access error: ';
-                if (error.name === 'NotAllowedError') {
-                    errorMessage += 'Permission denied. Please allow camera access.';
-                } else if (error.name === 'NotFoundError') {
-                    errorMessage += 'No camera found on this device.';
-                } else if (error.name === 'NotSupportedError') {
-                    errorMessage += 'Camera not supported in this browser.';
-                } else {
-                    errorMessage += error.message;
-                }
-                statusDiv.textContent = errorMessage + ' You can still use the test QR codes below.';
+                statusDiv.textContent = 'Camera access error. You can still use the test QR codes below.';
                 statusDiv.className = 'status-message status-error';
             });
         }
@@ -946,8 +743,6 @@
             startBtn.style.display = 'inline-block';
             stopBtn.style.display = 'none';
             statusDiv.style.display = 'none';
-            
-            document.getElementById('flashcard-container').style.display = 'none';
         }
 
         function scanForQR() {
@@ -985,210 +780,22 @@
         }
 
         function handleQRCode(data) {
-            const statusDiv = document.getElementById('scan-status');
+            console.log('QR code detected:', data);
             
-            // Check if it's a URL containing group parameter
             if (data.includes('group=')) {
                 const urlParams = new URLSearchParams(data.split('?')[1]);
                 const groupId = parseInt(urlParams.get('group'));
                 
                 if (groupId && groupId >= 1 && groupId <= 13) {
-                    statusDiv.textContent = `QR Code detected! Loading ${researchGroups.find(g => g.id === groupId)?.name || 'Group ' + groupId}...`;
-                    statusDiv.className = 'status-message status-success';
-                    
-                    const group = researchGroups.find(g => g.id === groupId);
-                    if (group) {
-                        displayFlashcard(group);
-                    }
+                    simulateQRScan(groupId);
                     return;
                 }
             }
             
-            // Fallback: try to parse as direct group ID
             const groupId = parseInt(data);
             if (groupId && groupId >= 1 && groupId <= 13) {
-                statusDiv.textContent = `QR Code detected! Loading ${researchGroups.find(g => g.id === groupId)?.name || 'Group ' + groupId}...`;
-                statusDiv.className = 'status-message status-success';
-                
-                const group = researchGroups.find(g => g.id === groupId);
-                if (group) {
-                    displayFlashcard(group);
-                }
-            } else {
-                statusDiv.textContent = 'Invalid QR code. Please scan a research group QR code (1-13).';
-                statusDiv.className = 'status-message status-error';
+                simulateQRScan(groupId);
             }
-        }
-
-        function simulateQRScan(groupId) {
-            const group = researchGroups.find(g => g.id === groupId);
-            if (group) {
-                const statusDiv = document.getElementById('scan-status');
-                statusDiv.style.display = 'block';
-                statusDiv.textContent = `Loading ${group.name}...`;
-                statusDiv.className = 'status-message status-success';
-                displayFlashcard(group);
-            }
-        }
-
-        function displayFlashcard(group) {
-            currentGroup = group;
-            const container = document.getElementById('flashcard-container');
-            
-            const keywordTags = group.keywords.map(keyword => 
-                `<span class="keyword-tag">${keyword}</span>`
-            ).join('');
-            
-            // Generate publications list with links
-            const publicationsHTML = group.publications.map(pub => 
-                `<a href="${pub.url}" target="_blank" style="color: #667eea; text-decoration: none; font-size: 0.9rem; display: block; margin: 4px 0; line-height: 1.4;">${pub.title}</a>`
-            ).join('');
-            
-            // Create collaboration section
-            const collaborationSection = createCollaborationSection(group);
-            
-            container.innerHTML = `
-                <div class="flashcard-display">
-                    <div class="flashcard-title">${group.name}</div>
-                    <div class="flashcard-focus">${group.focus}</div>
-                    <div class="flashcard-description">${group.description}</div>
-                    <div class="flashcard-keywords">
-                        <strong>Research Areas:</strong><br>
-                        ${keywordTags}
-                    </div>
-                    <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(102, 126, 234, 0.2);">
-                        <div style="text-align: center; margin-bottom: 15px;">
-                            <strong style="color: #2d3436; font-size: 1.1rem;">📚 Recent Publications</strong>
-                        </div>
-                        <div style="background: rgba(102, 126, 234, 0.03); padding: 15px; border-radius: 10px;">
-                            ${publicationsHTML}
-                        </div>
-                    </div>
-                    ${collaborationSection}
-                </div>
-            `;
-            
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function createCollaborationSection(primaryGroup) {
-            const otherGroups = researchGroups.filter(g => g.id !== primaryGroup.id);
-            
-            let groupSelectionHTML = '';
-            otherGroups.forEach(group => {
-                groupSelectionHTML += `
-                    <div class="group-selection-item" onclick="selectCollaborationGroup(${group.id})">
-                        <h4>${group.name}</h4>
-                        <p>${group.focus}</p>
-                    </div>
-                `;
-            });
-            
-            return `
-                <div class="collaboration-section">
-                    <h3 style="text-align: center; color: #667eea; margin-bottom: 15px;">
-                        🤝 Explore Collaboration Potential
-                    </h3>
-                    <p style="text-align: center; margin-bottom: 20px; color: #636e72;">
-                        Select another research group to analyze collaboration opportunities with <strong>${primaryGroup.name}</strong>
-                    </p>
-                    <div class="group-selection-grid">
-                        ${groupSelectionHTML}
-                    </div>
-                    <div id="collaboration-results" style="display: none; margin-top: 20px;">
-                        <!-- Collaboration analysis will be displayed here -->
-                    </div>
-                </div>
-            `;
-        }
-
-        function selectCollaborationGroup(secondGroupId) {
-            if (!currentGroup) return;
-            
-            // Remove previous selection
-            document.querySelectorAll('.group-selection-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Highlight selected group - need to find the correct element
-            const groupElements = document.querySelectorAll('.group-selection-item');
-            groupElements.forEach(element => {
-                if (element.onclick && element.onclick.toString().includes(secondGroupId)) {
-                    element.classList.add('selected');
-                }
-            });
-            
-            const secondGroup = researchGroups.find(g => g.id === secondGroupId);
-            if (!secondGroup) return;
-            
-            // Generate collaboration analysis
-            generateCollaborationAnalysis(currentGroup, secondGroup);
-        }
-
-        function generateCollaborationAnalysis(group1, group2) {
-            const compatibility = calculateCompatibility(group1, group2);
-            const collaborationIdeas = generateCollaborationIdeas(group1, group2);
-            
-            const container = document.getElementById('collaboration-results');
-            
-            let compatibilityClass = 'score-low';
-            let compatibilityText = 'Limited';
-            if (compatibility >= 70) {
-                compatibilityClass = 'score-high';
-                compatibilityText = 'High';
-            } else if (compatibility >= 40) {
-                compatibilityClass = 'score-medium';
-                compatibilityText = 'Moderate';
-            }
-            
-            container.innerHTML = `
-                <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-                    <h3 style="text-align: center; color: #2d3436; margin-bottom: 20px;">
-                        Collaboration Analysis
-                    </h3>
-                    
-                    <div style="text-align: center; margin: 20px 0;">
-                        <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 10px;">
-                            <span class="${compatibilityClass}" style="padding: 8px 16px; border-radius: 20px; display: inline-block;">
-                                ${compatibility}% Compatibility
-                            </span>
-                        </div>
-                        <div style="font-size: 1rem; color: #667eea; font-weight: 600;">
-                            ${compatibilityText} Collaboration Potential
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin: 20px 0; flex-wrap: wrap; gap: 15px;">
-                        <div style="flex: 1; min-width: 200px; text-align: center; padding: 10px; background: rgba(102, 126, 234, 0.05); border-radius: 10px;">
-                            <strong style="color: #667eea;">${group1.name}</strong>
-                            <br><small style="color: #636e72;">${group1.focus}</small>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: center; min-width: 60px;">
-                            <span style="font-size: 2rem;">🔗</span>
-                        </div>
-                        <div style="flex: 1; min-width: 200px; text-align: center; padding: 10px; background: rgba(102, 126, 234, 0.05); border-radius: 10px;">
-                            <strong style="color: #667eea;">${group2.name}</strong>
-                            <br><small style="color: #636e72;">${group2.focus}</small>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px;">
-                        <h4 style="color: #2d3436; margin-bottom: 15px; text-align: center;">
-                            Collaboration Opportunities
-                        </h4>
-                        ${collaborationIdeas.map((idea, index) => `
-                            <div style="margin-bottom: 15px; padding: 12px; background: rgba(102, 126, 234, 0.03); border-radius: 8px; border-left: 3px solid #667eea;">
-                                <h5 style="color: #667eea; margin-bottom: 8px; font-size: 0.9rem;">${index + 1}. ${idea.title}</h5>
-                                <p style="line-height: 1.5; color: #2d3436; font-size: 0.85rem; margin: 0;">${idea.description}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // Event listeners
@@ -1197,24 +804,20 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded');
+            
             const urlParams = new URLSearchParams(window.location.search);
             const groupId = urlParams.get('group');
             
             if (groupId && groupId >= 1 && groupId <= 13) {
+                console.log('Auto-loading group from URL:', groupId);
                 const group = researchGroups.find(g => g.id == groupId);
                 if (group) {
                     showSection('qr-scanner');
                     setTimeout(() => {
+                        console.log('Auto-displaying flashcard for group:', group.name);
                         displayFlashcard(group);
-                        const statusDiv = document.getElementById('scan-status');
-                        if (statusDiv) {
-                            statusDiv.style.display = 'block';
-                            statusDiv.textContent = `QR Code scanned successfully! Displaying ${group.name}...`;
-                            statusDiv.className = 'status-message status-success';
-                        }
                     }, 500);
-                } else {
-                    showSection('qr-scanner');
                 }
             } else {
                 showSection('qr-scanner');
