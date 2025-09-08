@@ -1037,6 +1037,11 @@
                 `<span class="keyword-tag">${keyword}</span>`
             ).join('');
             
+            // Generate publications list with links
+            const publicationsHTML = group.publications.map(pub => 
+                `<a href="${pub.url}" target="_blank" style="color: #667eea; text-decoration: none; font-size: 0.9rem; display: block; margin: 4px 0; line-height: 1.4;">${pub.title}</a>`
+            ).join('');
+            
             // Create collaboration section
             const collaborationSection = createCollaborationSection(group);
             
@@ -1048,6 +1053,14 @@
                     <div class="flashcard-keywords">
                         <strong>Research Areas:</strong><br>
                         ${keywordTags}
+                    </div>
+                    <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(102, 126, 234, 0.2);">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <strong style="color: #2d3436; font-size: 1.1rem;">📚 Recent Publications</strong>
+                        </div>
+                        <div style="background: rgba(102, 126, 234, 0.03); padding: 15px; border-radius: 10px;">
+                            ${publicationsHTML}
+                        </div>
                     </div>
                     ${collaborationSection}
                 </div>
