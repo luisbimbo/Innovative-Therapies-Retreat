@@ -589,11 +589,30 @@
                     `<span class="keyword-tag">${keyword}</span>`
                 ).join('');
                 
+                // Create publications for Browse Groups (compact format)
+                let publicationsHTML = '';
+                if (group.publications && group.publications.length > 0) {
+                    const pubLinks = group.publications.map(pub => {
+                        const [title, url] = pub.split('|');
+                        return `<a href="${url}" target="_blank" style="color: #667eea; text-decoration: none; font-size: 0.7rem; display: block; margin: 1px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</a>`;
+                    }).join('');
+                    
+                    publicationsHTML = `
+                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e9ecef;">
+                            <strong style="color: #2d3436; font-size: 0.75rem;">Publications:</strong>
+                            <div style="margin-top: 4px;">
+                                ${pubLinks}
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 card.innerHTML = `
                     <h3>${group.name}</h3>
                     <p><strong>Focus:</strong> ${group.focus}</p>
                     <p>${group.description}</p>
                     <div class="group-keywords">${keywordTags}</div>
+                    ${publicationsHTML}
                 `;
                 
                 card.onclick = () => {
